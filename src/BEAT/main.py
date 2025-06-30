@@ -408,8 +408,8 @@ if input_format == "Excel":
             resource_string = link_resource(dataset, catalog_purl, DCAT.Dataset)
             upload_data(dataset.serialize(), "Dataset")
 elif input_format == "csv":
-    parser.add_csv_catalog(catalog_file_path, parser.graph, "Catalog")
-    object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
+    parser.pydantic_catalog(catalog_file_path, parser.graph, URL + "/new")
+    #object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
     catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog, resource_name="Catalog")
     if config["mode"]["replace"] == True:
         catalog_purl = config["FDP"]["catalog_purl"]

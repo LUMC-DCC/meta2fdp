@@ -1,6 +1,33 @@
 import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
 from rdflib.namespace import Namespace
+from sempyro.utils.validator_functions import force_literal_field
+
+from typing import List, Union
+from pprint import pprint
+
+from rdflib import URIRef, DCTERMS
+from pydantic import AnyHttpUrl, Field, field_validator
+import dateutil.parser as parser
+from sempyro import LiteralField
+from sempyro.hri_dcat import (
+    HRICatalog, 
+    HRIDataset, 
+    HRIVCard, 
+    HRIAgent, 
+    HRIDistribution,
+    HRIDataService,
+    HRIDatasetSeries
+)
+
+
+# class FDPCatalog(HRICatalog):
+#     is_part_of: [AnyHttpUrl] = Field(
+#         description="Link to parent object", 
+#         json_schema_extra={
+#             "rdf_term": DCTERMS.isPartOf, 
+#             "rdf_type": "uri"
+#         })
 
 
 class HealthRIConverterv2:
@@ -136,6 +163,31 @@ class HealthRIConverterv2:
         graph.add((publisher, FOAF.name, Literal(cat_table.loc[:,"publisher_name_nl"][0],lang="nl")))
         graph.add((publisher, FOAF.homepage, URIRef(cat_table.loc[:,"publisher_url"][0])))
         graph.add((catalog, DCTERMS.publisher, publisher))
+
+    def pydantic_catalog(self, csv, graph: Graph, url=None):
+        cat_table = pd.read_csv(csv,sep=";",header=0)
+        catalog = HRICatalog(
+    title=[
+        LiteralField(value=cat_table.loc[:,"title_en"][0], language="en"),
+        LiteralField(value=cat_table.loc[:,"title_nl"][0], language="nl")
+    ],
+    description=[
+        LiteralField(value=cat_table.loc[:,"description_en"][0], language="en"),
+        LiteralField(value=cat_table.loc[:,"description_nl"][0], language="nl")
+    ],
+    contact_point=HRIVCard(
+        hasEmail="mailto:" + cat_table.loc[:,"contactPoint_email"][0],
+        formatted_name=cat_table.loc[:,"contactPoint_name"][0]),
+    publisher=HRIAgent(
+        name=[LiteralField(value=cat_table.loc[:,"publisher_name_en"][0], language="en"),
+              LiteralField(value=cat_table.loc[:,"publisher_name_nl"][0], language="nl")],
+        identifier=[cat_table.loc[:,"publisher_identifier"][0]],
+        homepage=URIRef(cat_table.loc[:,"publisher_url"][0]),
+        mbox="mailto:" + cat_table.loc[:,"publisher_email"][0]
+    ),
+    dataset=[])
+        graph.parse(data=catalog.to_graph(url).serialize())
+        # print("debug")
 
     
     def add_csv_datasets(self, csv, graph:Graph):
