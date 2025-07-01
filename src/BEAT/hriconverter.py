@@ -236,6 +236,46 @@ class HealthRIConverterv2:
             graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#fn"), Literal(row.loc["contactPoint_name"],datatype=XSD.string)))
             graph.add((dataset, DCAT.contactPoint, contact_point))
 
+    def pydantic_dataset(self, csv, graph:Graph, URI):
+        dat_table = pd.read_csv(csv, sep=";",header=0) # get data
+        for index, row in dat_table.iterrows():
+            dataset = HRIDataset(
+        contact_point=HRIVCard(
+            hasEmail=URIRef("mailto:" + row.loc["contactPoint_email"]),
+            formatted_name=Literal(row.loc["contactPoint_name"]))
+        ,
+        creator=[HRIAgent( # identifier as object URI?
+            name=[LiteralField(value=row.loc["creator_name"])], 
+            identifier=[Literal(row.loc["creator_identifier"])],
+            homepage= URIRef(row.loc["creator_url"]),
+            mbox=URIRef("mailto:" + row.loc["creator_email"])    
+        )],
+        description=[LiteralField(value=row.loc["description_en"], language="en"),
+                     LiteralField(value=row.loc["description_nl"], language="nl")],
+        #release_date=parser.isoparse("2024-07-01T11:11:11Z"),
+        identifier=[row.loc["identifier"]],
+        #modification_date=parser.isoparse("2024-06-04T13:36:10Z"),
+        publisher=HRIAgent( # identifier as object URI?
+        name=[LiteralField(value=row.loc["publisher_name_en"], language="en"),
+              LiteralField(value=row.loc["publisher_name_nl"], language="nl")],
+        identifier=[row.loc["publisher_identifier"]], #TODO fix identifier error due to only using an integer!
+        homepage=URIRef(row.loc["publisher_url"]),
+        mbox="mailto:" + row.loc["publisher_email"]
+        ),
+        theme=[URIRef("http://publications.europa.eu/resource/authority/data-theme/" + row.loc["theme"])],
+        title=[
+        LiteralField(value=row.loc["title_en"], language="en"),
+        LiteralField(value=row.loc["title_nl"], language="nl")
+        ],
+        distribution=[],
+        access_rights=URIRef("http://publications.europa.eu/resource/authority/access-right/" + str(row.loc["accessRights"])),
+        keyword=row.loc["keywords"].split(","),
+        applicable_legislation=[URIRef(row.loc["applicableLegislation"])],
+        number_of_records=LiteralField(value=str(row.loc["numberOfRecords"]), datatype=XSD.nonNegativeInteger),
+        number_of_unique_individuals=LiteralField(value=str(row.loc["numberOfUniqueIndividuals"]), datatype=XSD.nonNegativeInteger)
+        )
+        graph.parse(data=dataset.to_graph(URI + str(row.loc["identifier"])).serialize())
+
 
     def sheet_to_rdf(self, node_id, resource_type, sheet, graph: Graph, shacl):
         """
