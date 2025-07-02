@@ -246,26 +246,26 @@ class HealthRIConverterv2:
         ,
         creator=[HRIAgent( # identifier as object URI?
             name=[LiteralField(value=row.loc["creator_name"])], 
-            identifier=[Literal(row.loc["creator_identifier"])],
+            identifier=[str(row.loc["creator_identifier"])],
             homepage= URIRef(row.loc["creator_url"]),
             mbox=URIRef("mailto:" + row.loc["creator_email"])    
         )],
-        description=[LiteralField(value=row.loc["description_en"], language="en"),
-                     LiteralField(value=row.loc["description_nl"], language="nl")],
+        description=[LiteralField(value=row.loc["description_en"]),
+                     LiteralField(value=row.loc["description_nl"])],
         #release_date=parser.isoparse("2024-07-01T11:11:11Z"),
-        identifier=[row.loc["identifier"]],
+        identifier=str(row.loc["identifier"]),
         #modification_date=parser.isoparse("2024-06-04T13:36:10Z"),
         publisher=HRIAgent( # identifier as object URI?
         name=[LiteralField(value=row.loc["publisher_name_en"], language="en"),
               LiteralField(value=row.loc["publisher_name_nl"], language="nl")],
-        identifier=[row.loc["publisher_identifier"]], #TODO fix identifier error due to only using an integer!
+        identifier=[str(row.loc["publisher_identifier"])],
         homepage=URIRef(row.loc["publisher_url"]),
         mbox="mailto:" + row.loc["publisher_email"]
         ),
         theme=[URIRef("http://publications.europa.eu/resource/authority/data-theme/" + row.loc["theme"])],
         title=[
-        LiteralField(value=row.loc["title_en"], language="en"),
-        LiteralField(value=row.loc["title_nl"], language="nl")
+        LiteralField(value=row.loc["title_en"]),
+        LiteralField(value=row.loc["title_nl"])
         ],
         distribution=[],
         access_rights=URIRef("http://publications.europa.eu/resource/authority/access-right/" + str(row.loc["accessRights"])),

@@ -410,8 +410,8 @@ if input_format == "Excel":
 elif input_format == "csv":
     print("catalog")
     parser.pydantic_catalog(catalog_file_path, parser.graph, URL + "/new")
-    #object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
-    catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog, resource_name="Catalog")
+    object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
+    # catalog_purl = "https://fdp.example.org/catalog/d66222dc-c95c-4b83-874d-7764f5475173"
     if config["mode"]["replace"] == True:
         catalog_purl = config["FDP"]["catalog_purl"]
         datasets = update_catalog(catalog_purl, parser.graph)
