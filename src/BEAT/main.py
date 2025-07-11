@@ -11,6 +11,7 @@ from os import getenv
 import yaml
 import json
 from datetime import datetime
+import keyring
 
 conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
 
@@ -18,20 +19,16 @@ conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
 with open(conf_path, "r") as config_file:
     config = yaml.safe_load(config_file)
 
-cred_path = getenv("CRED_PATH", default=config["file_paths"]["credentials"])
-
-def connect_client(cred_path):
+def connect_client():
     ### set up connection settings to FDP server ###
     URL = URIRef(config["FDP"]["URL"])
     PURL = URIRef(config["FDP"]["PURL"])
-    with open(cred_path, 'r') as infile:
-        credentials = json.load(infile)
-    client = FDPClient(URL, credentials["username"], credentials["password"], PURL)
+    client = FDPClient(URL, config["keyring"]["username"], keyring.get_password(config["keyring"]["system"], config["keyring"]["username"]) , PURL)
     # ping server:
     #client.check_url(URL)
     return URL, PURL, client
 
-URL, PURL, client = connect_client(cred_path)
+URL, PURL, client = connect_client()
 catalog_file_path = config["file_paths"]["catalog_input_file"]
 datasets_file_path = config["file_paths"]["datasets_input_file"]
 catalog_shacl_path = config["file_paths"]["catalog_shacl"]
