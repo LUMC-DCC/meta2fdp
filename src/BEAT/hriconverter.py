@@ -138,7 +138,7 @@ class HealthRIConverterv2:
         graph.add((catalog, DCTERMS.publisher, publisher))
 
     
-    def add_csv_datasets(self, csv, graph:Graph):
+    def add_row_dataset(self, row, graph:Graph):
         """
         Extract all datasets from a SQL view export and generate RDF that corresponds to the HRIv2 model.
 
@@ -147,42 +147,41 @@ class HealthRIConverterv2:
         :param graph: The target graph where the catalog should be added
         :type graph: RDFLib Graph
         """
-        dat_table = pd.read_csv(csv, sep=";",header=0) # get data
-        for index, row in dat_table.iterrows():
-            dataset = BNode(row.loc["identifier"])
-            graph.add((dataset, RDF.type, DCAT.Dataset))
-            graph.add((dataset, DCTERMS.identifier, Literal(row.loc["identifier"])))
-            graph.add((dataset, DCTERMS.title, Literal(row.loc["title_en"], datatype=XSD.string)))
-            graph.add((dataset, DCTERMS.title, Literal(row.loc["title_nl"], datatype=XSD.string)))
-            graph.add((dataset, DCTERMS.description, Literal(row.loc["description_en"], datatype=XSD.string)))
-            graph.add((dataset, DCTERMS.description, Literal(row.loc["description_nl"], datatype=XSD.string)))
-            graph.add((dataset, DCTERMS.accessRights, URIRef("http://publications.europa.eu/resource/authority/access-right/" + str(row.loc["accessRights"]))))
-            graph.add((dataset, URIRef("http://data.europa.eu/r5r/applicableLegislation"), URIRef(row.loc["applicableLegislation"])))
-            graph.add((dataset, URIRef("http://healthdataportal.eu/ns/health#numberOfRecords"), Literal(row.loc["numberOfRecords"],datatype=XSD.nonNegativeInteger)))
-            graph.add((dataset, URIRef("http://healthdataportal.eu/ns/health#numberOfUniqueIndividuals"), Literal(row.loc["numberOfUniqueIndividuals"],datatype=XSD.nonNegativeInteger)))
-            graph.add((dataset, DCAT.theme, URIRef("http://publications.europa.eu/resource/authority/data-theme/" + row.loc["theme"])))
-            for keyword in row.loc["keywords"].split(","):
-                graph.add((dataset, DCAT.keyword, Literal(keyword)))
-            publisher = BNode(row.loc["publisher_identifier"] + "publisher")
-            graph.add((publisher, RDF.type, FOAF.Agent))
-            graph.add((publisher, FOAF.mbox, URIRef("mailto:" + row.loc["publisher_email"])))
-            graph.add((publisher, DCTERMS.identifier, Literal(row.loc["publisher_identifier"])))
-            graph.add((publisher, FOAF.name, Literal(row.loc["publisher_name_en"],lang="en")))
-            graph.add((publisher, FOAF.name, Literal(row.loc["publisher_name_nl"],lang="nl")))
-            graph.add((publisher, FOAF.homepage, URIRef(row.loc["publisher_url"])))
-            graph.add((dataset, DCTERMS.publisher, publisher))
-            creator = BNode(row.loc["creator_identifier"]+ "creator")
-            graph.add((creator, RDF.type,  FOAF.Agent))
-            graph.add((creator, FOAF.mbox, URIRef("mailto:" + row.loc["creator_email"])))
-            graph.add((creator, FOAF.name, Literal(row.loc["creator_name"],datatype=XSD.string)))
-            graph.add((creator, DCTERMS.identifier, Literal(row.loc["creator_identifier"])))
-            graph.add((creator, FOAF.homepage, URIRef(row.loc["creator_url"])))
-            graph.add((dataset, DCTERMS.creator, creator))
-            contact_point = BNode()
-            graph.add((contact_point, RDF.type, URIRef("http://www.w3.org/2006/vcard/ns#Kind")))
-            graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#hasEmail"), URIRef("mailto:" + row.loc["contactPoint_email"])))
-            graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#fn"), Literal(row.loc["contactPoint_name"],datatype=XSD.string)))
-            graph.add((dataset, DCAT.contactPoint, contact_point))
+        #dat_table = pd.read_csv(csv, sep=";",header=0) # get data
+        dataset = BNode(row.loc["identifier"])
+        graph.add((dataset, RDF.type, DCAT.Dataset))
+        graph.add((dataset, DCTERMS.identifier, Literal(row.loc["identifier"])))
+        graph.add((dataset, DCTERMS.title, Literal(row.loc["title_en"], datatype=XSD.string)))
+        graph.add((dataset, DCTERMS.title, Literal(row.loc["title_nl"], datatype=XSD.string)))
+        graph.add((dataset, DCTERMS.description, Literal(row.loc["description_en"], datatype=XSD.string)))
+        graph.add((dataset, DCTERMS.description, Literal(row.loc["description_nl"], datatype=XSD.string)))
+        graph.add((dataset, DCTERMS.accessRights, URIRef("http://publications.europa.eu/resource/authority/access-right/" + str(row.loc["accessRights"]))))
+        graph.add((dataset, URIRef("http://data.europa.eu/r5r/applicableLegislation"), URIRef(row.loc["applicableLegislation"])))
+        graph.add((dataset, URIRef("http://healthdataportal.eu/ns/health#numberOfRecords"), Literal(row.loc["numberOfRecords"],datatype=XSD.nonNegativeInteger)))
+        graph.add((dataset, URIRef("http://healthdataportal.eu/ns/health#numberOfUniqueIndividuals"), Literal(row.loc["numberOfUniqueIndividuals"],datatype=XSD.nonNegativeInteger)))
+        graph.add((dataset, DCAT.theme, URIRef("http://publications.europa.eu/resource/authority/data-theme/" + row.loc["theme"])))
+        for keyword in row.loc["keywords"].split(","):
+            graph.add((dataset, DCAT.keyword, Literal(keyword)))
+        publisher = BNode(row.loc["publisher_identifier"] + "publisher")
+        graph.add((publisher, RDF.type, FOAF.Agent))
+        graph.add((publisher, FOAF.mbox, URIRef("mailto:" + row.loc["publisher_email"])))
+        graph.add((publisher, DCTERMS.identifier, Literal(row.loc["publisher_identifier"])))
+        graph.add((publisher, FOAF.name, Literal(row.loc["publisher_name_en"],lang="en")))
+        graph.add((publisher, FOAF.name, Literal(row.loc["publisher_name_nl"],lang="nl")))
+        graph.add((publisher, FOAF.homepage, URIRef(row.loc["publisher_url"])))
+        graph.add((dataset, DCTERMS.publisher, publisher))
+        creator = BNode(row.loc["creator_identifier"]+ "creator")
+        graph.add((creator, RDF.type,  FOAF.Agent))
+        graph.add((creator, FOAF.mbox, URIRef("mailto:" + row.loc["creator_email"])))
+        graph.add((creator, FOAF.name, Literal(row.loc["creator_name"],datatype=XSD.string)))
+        graph.add((creator, DCTERMS.identifier, Literal(row.loc["creator_identifier"])))
+        graph.add((creator, FOAF.homepage, URIRef(row.loc["creator_url"])))
+        graph.add((dataset, DCTERMS.creator, creator))
+        contact_point = BNode()
+        graph.add((contact_point, RDF.type, URIRef("http://www.w3.org/2006/vcard/ns#Kind")))
+        graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#hasEmail"), URIRef("mailto:" + row.loc["contactPoint_email"])))
+        graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#fn"), Literal(row.loc["contactPoint_name"],datatype=XSD.string)))
+        graph.add((dataset, DCAT.contactPoint, contact_point))
 
 
     def sheet_to_rdf(self, node_id, resource_type, sheet, graph: Graph, shacl):

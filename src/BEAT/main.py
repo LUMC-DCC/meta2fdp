@@ -11,6 +11,9 @@ from os import getenv
 import yaml
 import json
 from datetime import datetime
+import pandas as pd
+import keyring
+from pymssql import connect
 
 conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
 
@@ -408,7 +411,7 @@ if input_format == "Excel":
             resource_string = link_resource(dataset, catalog_purl, DCAT.Dataset)
             upload_data(dataset.serialize(), "Dataset")
 elif input_format == "csv":
-    parser.add_csv_catalog(catalog_file_path, parser.graph, "Catalog")
+    parser.add_csv_catalog(pd.read_csv(catalog_file_path,sep=";",header=0), parser.graph, "Catalog")
     object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
     catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog, resource_name="Catalog")
     if config["mode"]["replace"] == True:
@@ -417,7 +420,8 @@ elif input_format == "csv":
     else:
         catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog)
     print("datasets")
-    parser.add_csv_datasets(datasets_file_path, parser.graph) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
+    dat_table = pd.read_csv(datasets_file_path, sep=";",header=0)
+    parser.add_row_dataset(dat_table, parser.graph) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
     dataset_list = get_dataset_nodes(parser.graph)
     for node_id in dataset_list:
         dataset_graph = parser.graph.cbd(node_id[0])
@@ -425,4 +429,7 @@ elif input_format == "csv":
         dataset_graph.remove((BNode(node_id[0]), None, None))
         link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
         upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
+elif input_format == "SQL":
+    conn = connect(server=config["SQL"]["server_name"],user=config["SQL"]["username"],password=keyring.get_password(service_name=config["SQL"]["keyring_service"], username=config["SQL"]["username"]), database=config["SQL"]["database_name"],tds_version="7.4")
+    parser.add_csv_catalog()
         
