@@ -1,6 +1,33 @@
 import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
 from rdflib.namespace import Namespace
+from sempyro.utils.validator_functions import force_literal_field
+
+from typing import List, Union
+from pprint import pprint
+
+from rdflib import URIRef, DCTERMS
+from pydantic import AnyHttpUrl, Field, field_validator
+import dateutil.parser as parser
+from sempyro import LiteralField
+from sempyro.hri_dcat import (
+    HRICatalog, 
+    HRIDataset, 
+    HRIVCard, 
+    HRIAgent, 
+    HRIDistribution,
+    HRIDataService,
+    HRIDatasetSeries
+)
+
+
+# class FDPCatalog(HRICatalog):
+#     is_part_of: [AnyHttpUrl] = Field(
+#         description="Link to parent object", 
+#         json_schema_extra={
+#             "rdf_term": DCTERMS.isPartOf, 
+#             "rdf_type": "uri"
+#         })
 
 
 class HealthRIConverterv2:
@@ -137,6 +164,31 @@ class HealthRIConverterv2:
         graph.add((publisher, FOAF.homepage, URIRef(cat_table.loc[:,"publisher_url"][0])))
         graph.add((catalog, DCTERMS.publisher, publisher))
 
+    def pydantic_catalog(self, csv, graph: Graph, url=None):
+        cat_table = pd.read_csv(csv,sep=";",header=0)
+        catalog = HRICatalog(
+    title=[
+        LiteralField(value=cat_table.loc[:,"title_en"][0], language="en"),
+        LiteralField(value=cat_table.loc[:,"title_nl"][0], language="nl")
+    ],
+    description=[
+        LiteralField(value=cat_table.loc[:,"description_en"][0], language="en"),
+        LiteralField(value=cat_table.loc[:,"description_nl"][0], language="nl")
+    ],
+    contact_point=HRIVCard(
+        hasEmail="mailto:" + cat_table.loc[:,"contactPoint_email"][0],
+        formatted_name=cat_table.loc[:,"contactPoint_name"][0]),
+    publisher=HRIAgent(
+        name=[LiteralField(value=cat_table.loc[:,"publisher_name_en"][0], language="en"),
+              LiteralField(value=cat_table.loc[:,"publisher_name_nl"][0], language="nl")],
+        identifier=[cat_table.loc[:,"publisher_identifier"][0]],
+        homepage=URIRef(cat_table.loc[:,"publisher_url"][0]),
+        mbox="mailto:" + cat_table.loc[:,"publisher_email"][0]
+    ),
+    dataset=[])
+        graph.parse(data=catalog.to_graph(url).serialize())
+        # print("debug")
+
     
     def add_row_dataset(self, row, graph:Graph):
         """
@@ -182,6 +234,46 @@ class HealthRIConverterv2:
         graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#hasEmail"), URIRef("mailto:" + row.loc["contactPoint_email"])))
         graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#fn"), Literal(row.loc["contactPoint_name"],datatype=XSD.string)))
         graph.add((dataset, DCAT.contactPoint, contact_point))
+
+    def pydantic_dataset(self, csv, graph:Graph, URI):
+        dat_table = pd.read_csv(csv, sep=";",header=0) # get data
+        for index, row in dat_table.iterrows():
+            dataset = HRIDataset(
+        contact_point=HRIVCard(
+            hasEmail=URIRef("mailto:" + row.loc["contactPoint_email"]),
+            formatted_name=Literal(row.loc["contactPoint_name"]))
+        ,
+        creator=[HRIAgent( # identifier as object URI?
+            name=[LiteralField(value=row.loc["creator_name"])], 
+            identifier=[str(row.loc["creator_identifier"])],
+            homepage= URIRef(row.loc["creator_url"]),
+            mbox=URIRef("mailto:" + row.loc["creator_email"])    
+        )],
+        description=[LiteralField(value=row.loc["description_en"]),
+                     LiteralField(value=row.loc["description_nl"])],
+        #release_date=parser.isoparse("2024-07-01T11:11:11Z"),
+        identifier=str(row.loc["identifier"]),
+        #modification_date=parser.isoparse("2024-06-04T13:36:10Z"),
+        publisher=HRIAgent( # identifier as object URI?
+        name=[LiteralField(value=row.loc["publisher_name_en"], language="en"),
+              LiteralField(value=row.loc["publisher_name_nl"], language="nl")],
+        identifier=[str(row.loc["publisher_identifier"])],
+        homepage=URIRef(row.loc["publisher_url"]),
+        mbox="mailto:" + row.loc["publisher_email"]
+        ),
+        theme=[URIRef("http://publications.europa.eu/resource/authority/data-theme/" + row.loc["theme"])],
+        title=[
+        LiteralField(value=row.loc["title_en"]),
+        LiteralField(value=row.loc["title_nl"])
+        ],
+        distribution=[],
+        access_rights=URIRef("http://publications.europa.eu/resource/authority/access-right/" + str(row.loc["accessRights"])),
+        keyword=row.loc["keywords"].split(","),
+        applicable_legislation=[URIRef(row.loc["applicableLegislation"])],
+        number_of_records=LiteralField(value=str(row.loc["numberOfRecords"]), datatype=XSD.nonNegativeInteger),
+        number_of_unique_individuals=LiteralField(value=str(row.loc["numberOfUniqueIndividuals"]), datatype=XSD.nonNegativeInteger)
+        )
+        graph.parse(data=dataset.to_graph(URI + str(row.loc["identifier"])).serialize())
 
 
     def sheet_to_rdf(self, node_id, resource_type, sheet, graph: Graph, shacl):

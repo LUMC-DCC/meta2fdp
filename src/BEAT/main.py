@@ -21,20 +21,16 @@ conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
 with open(conf_path, "r") as config_file:
     config = yaml.safe_load(config_file)
 
-cred_path = getenv("CRED_PATH", default=config["file_paths"]["credentials"])
-
-def connect_client(cred_path):
+def connect_client():
     ### set up connection settings to FDP server ###
     URL = URIRef(config["FDP"]["URL"])
     PURL = URIRef(config["FDP"]["PURL"])
-    with open(cred_path, 'r') as infile:
-        credentials = json.load(infile)
-    client = FDPClient(URL, credentials["username"], credentials["password"], PURL)
+    client = FDPClient(URL, config["keyring"]["username"], keyring.get_password(config["keyring"]["system"], config["keyring"]["username"]) , PURL)
     # ping server:
     #client.check_url(URL)
     return URL, PURL, client
 
-URL, PURL, client = connect_client(cred_path)
+URL, PURL, client = connect_client()
 catalog_file_path = config["file_paths"]["catalog_input_file"]
 datasets_file_path = config["file_paths"]["datasets_input_file"]
 catalog_shacl_path = config["file_paths"]["catalog_shacl"]
@@ -411,17 +407,17 @@ if input_format == "Excel":
             resource_string = link_resource(dataset, catalog_purl, DCAT.Dataset)
             upload_data(dataset.serialize(), "Dataset")
 elif input_format == "csv":
-    parser.add_csv_catalog(pd.read_csv(catalog_file_path,sep=";",header=0), parser.graph, "Catalog")
+    print("catalog")
+    parser.pydantic_catalog(catalog_file_path, parser.graph, URL + "/new")
     object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
-    catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog, resource_name="Catalog")
+    # catalog_purl = "https://fdp.example.org/catalog/d66222dc-c95c-4b83-874d-7764f5475173"
     if config["mode"]["replace"] == True:
         catalog_purl = config["FDP"]["catalog_purl"]
         datasets = update_catalog(catalog_purl, parser.graph)
     else:
         catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog)
     print("datasets")
-    dat_table = pd.read_csv(datasets_file_path, sep=";",header=0)
-    parser.add_row_dataset(dat_table, parser.graph) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
+    parser.pydantic_dataset(datasets_file_path, parser.graph, PURL) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
     dataset_list = get_dataset_nodes(parser.graph)
     for node_id in dataset_list:
         dataset_graph = parser.graph.cbd(node_id[0])
