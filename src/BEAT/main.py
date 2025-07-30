@@ -11,7 +11,9 @@ from os import getenv
 import yaml
 import json
 from datetime import datetime
+import pandas as pd
 import keyring
+from pymssql import connect
 
 conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
 
@@ -423,4 +425,7 @@ elif input_format == "csv":
         dataset_graph.remove((BNode(node_id[0]), None, None))
         link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
         upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
+elif input_format == "SQL":
+    conn = connect(server=config["SQL"]["server_name"],user=config["SQL"]["username"],password=keyring.get_password(service_name=config["SQL"]["keyring_service"], username=config["SQL"]["username"]), database=config["SQL"]["database_name"],tds_version="7.4")
+    parser.add_csv_catalog()
         
