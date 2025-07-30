@@ -25,9 +25,9 @@ def connect_client():
     ### set up connection settings to FDP server ###
     URL = URIRef(config["FDP"]["URL"])
     PURL = URIRef(config["FDP"]["PURL"])
-    client = FDPClient(URL, config["keyring"]["username"], keyring.get_password(config["keyring"]["system"], config["keyring"]["username"]) , PURL)
+    client = FDPClient(URL, config["keyring"]["username"], keyring.get_password(config["keyring"]["fdp_service"], config["keyring"]["username"]), PURL)
     # ping server:
-    #client.check_url(URL)
+    client.check_url(URL)
     return URL, PURL, client
 
 URL, PURL, client = connect_client()
@@ -68,8 +68,8 @@ def link_resource(graph, purl, resource_type):
     :type purl: URIRef
     :param resource_type: dcat resouce type
     :type resource_type: String
-    :return: linked resource graph
-    :rtype: RDF Graph object
+    :return: linked resource graph Turtle serialization
+    :rtype: String
     """
     res = graph.query("SELECT ?s WHERE {?s ?p <" +  str(resource_type) +  "> . } ") #TODO make this work for multiple resource definitions.
     x = 0
@@ -358,20 +358,29 @@ def get_dataset_nodes(graph:Graph) -> list:
     res = graph.query(query)
     return [id for id in res]
 
+def dataset_upload(dataset_graph: Graph, fdp_dataset_dictionary: dict, catalog_purl: str) -> None:
+    if config["mode"]["replace"] == True:
+        try:
+            dataset_identifier = dataset_graph.value(subject=URIRef(PURL + "new"), predicate=DCTERMS.identifier)
+            matching_purl = fdp_dataset_dictionary[dataset_identifier]
+            update_resource(matching_purl, DCAT.Dataset, dataset_graph)
+        except KeyError:
+            Warning("Missing dataset on FDP: {dataset_identifier} ")
+            resource_string = link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
+            upload_data(dataset_graph.serialize(), "Dataset")
+    else:
+        resource_string = link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
+        upload_data(dataset_graph.serialize(), "Dataset")
 
 #file_path = "data/BEAT/Health-RI Core Metadata model v2 filled BEAT.xlsx"
 #file_path = "data/BEAT/Health-RI Core Metadata model v2 filled Comodulate.xlsx"
 
-parser = HealthRIConverterv2(catalog_file_path)
-
-input_format = config["mode"]["input_format"]
-
-if input_format == "Excel":
+def excel_parsing():
     parser.parse_catalog(shacl=catalog_shacl_path)
     object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
     if config["mode"]["replace"] == True:
         catalog_purl = config["FDP"]["catalog_purl"]
-        datasets = update_catalog(catalog_purl, parser.graph)
+        datasets_fdp_ids = update_catalog(catalog_purl, parser.graph)
     else:
         catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog)
     print("datasets")
@@ -394,38 +403,82 @@ if input_format == "Excel":
         dataset.add((BNode(dataset_node_id), DCTERMS.description, catalog_description[2]))
         parser._merge_desc(BNode(dataset_node_id), dataset)
         object_replace(PURL + "new", BNode(dataset_node_id), DCAT.Dataset, dataset) # replace mode also assumes FDP resource PURL
+        dataset_upload(dataset, datasets_fdp_ids, catalog_purl)
+
+def csv_parsing():
+    cat_table = pd.read_csv(catalog_file_path,sep=";",header=0)
+    for catalog in cat_table.iterrows():
+        parser.pydantic_catalog(catalog, parser.graph, URL + "/new")
+        object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
+        # catalog_purl = "https://fdp.example.org/catalog/d66222dc-c95c-4b83-874d-7764f5475173"
         if config["mode"]["replace"] == True:
-            try:
-                dataset_identifier = dataset.value(subject=URIRef(PURL + "new"), predicate=DCTERMS.identifier)
-                matching_purl = datasets[dataset_identifier]
-                update_resource(matching_purl, DCAT.Dataset, dataset)
-            except KeyError:
-                Warning("Missing dataset on FDP! {dataset_identifier} \n uploading new dataset")
-                resource_string = link_resource(dataset, catalog_purl, DCAT.Dataset)
-                upload_data(dataset.serialize(), "Dataset")
+            catalog_purl = config["FDP"]["catalog_purl"]
+            datasets_fdp_ids = update_catalog(catalog_purl, parser.graph)
         else:
-            resource_string = link_resource(dataset, catalog_purl, DCAT.Dataset)
-            upload_data(dataset.serialize(), "Dataset")
+            catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog)
+        dat_table = pd.read_csv(datasets_file_path, sep=";",header=0) # get data
+        for dataset in dat_table.iterrows():
+            parser.pydantic_dataset(dataset, parser.graph, PURL) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
+        dataset_list = get_dataset_nodes(parser.graph)
+        for node_id in dataset_list:
+            dataset_graph = parser.graph.cbd(node_id[0])
+            object_replace(PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)
+            dataset_graph.remove((BNode(node_id[0]), None, None))
+            link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
+            upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
+
+def dataset_sql_query(cursor, dataset_id):
+
+    def dataset_sql_query_constructor(table_name, dataset_id) -> str:
+        dataset_query = "select * from " + str(table_name) + " where identifier = '" + str(dataset_id) + "';"
+        return dataset_query
+    
+    table_name = config["SQL"]["dataset_id"]
+    dataset_query = dataset_sql_query_constructor(table_name, dataset_id)
+    cursor.execute(dataset_query)
+    return cursor
+
+def catalog_sql_query(cursor):
+
+    def catalog_sql_query_constructor(table_name) -> str:
+        catalog_query = "select * from "  + str(table_name) + ";"
+        return catalog_query
+    
+    catalog_query = catalog_sql_query_constructor(config["SQL"]["catalog_id"])
+    cursor.execute(catalog_query)
+    return cursor
+
+#def dataset_sql_query()
+
+parser = HealthRIConverterv2(catalog_file_path)
+
+input_format = config["mode"]["input_format"]
+
+if input_format == "Excel":
+    excel_parsing()
 elif input_format == "csv":
-    print("catalog")
-    parser.pydantic_catalog(catalog_file_path, parser.graph, URL + "/new")
-    object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
-    # catalog_purl = "https://fdp.example.org/catalog/d66222dc-c95c-4b83-874d-7764f5475173"
-    if config["mode"]["replace"] == True:
-        catalog_purl = config["FDP"]["catalog_purl"]
-        datasets = update_catalog(catalog_purl, parser.graph)
-    else:
-        catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog)
-    print("datasets")
-    parser.pydantic_dataset(datasets_file_path, parser.graph, PURL) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
-    dataset_list = get_dataset_nodes(parser.graph)
-    for node_id in dataset_list:
-        dataset_graph = parser.graph.cbd(node_id[0])
-        object_replace(PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)
-        dataset_graph.remove((BNode(node_id[0]), None, None))
-        link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
-        upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
+    csv_parsing()
 elif input_format == "SQL":
     conn = connect(server=config["SQL"]["server_name"],user=config["SQL"]["username"],password=keyring.get_password(service_name=config["SQL"]["keyring_service"], username=config["SQL"]["username"]), database=config["SQL"]["database_name"],tds_version="7.4")
-    parser.add_csv_catalog()
-        
+    cursor = conn.cursor(as_dict=True)
+    if config["mode"]["replace"] == True:
+        parser.add_csv_catalog()
+    elif config["mode"]["replace"] == False:
+        catalog_table = catalog_sql_query(cursor)
+        for catalog in catalog_table:
+            parser.pydantic_catalog(pd.Series(catalog), parser.graph, url=URL + "/new")
+            object_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, parser.graph)
+            catalog_purl = upload_resource(parser.graph, URL, resource_type=DCAT.Catalog)
+            for dataset_id in catalog["datasets"].split(","):
+                dataset_metadata = dataset_sql_query(cursor, dataset_id).__next__()
+                parser.pydantic_dataset(pd.Series(dataset_metadata), parser.graph, PURL)
+            dataset_list = get_dataset_nodes(parser.graph)
+            for node_id in dataset_list:
+                dataset_graph = parser.graph.cbd(node_id[0])
+                object_replace(PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)
+                dataset_graph.remove((BNode(node_id[0]), None, None))
+                link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
+                upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
+
+    else:
+        raise AttributeError("Pleasue use either True or False for replacement mode")
