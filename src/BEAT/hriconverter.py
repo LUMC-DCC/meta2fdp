@@ -164,26 +164,25 @@ class HealthRIConverterv2:
         graph.add((publisher, FOAF.homepage, URIRef(cat_table.loc[:,"publisher_url"][0])))
         graph.add((catalog, DCTERMS.publisher, publisher))
 
-    def pydantic_catalog(self, csv, graph: Graph, url=None):
-        cat_table = pd.read_csv(csv,sep=";",header=0)
+    def pydantic_catalog(self, cat_table: pd.DataFrame, graph: Graph, url=None):
         catalog = HRICatalog(
     title=[
-        LiteralField(value=cat_table.loc[:,"title_en"][0], language="en"),
-        LiteralField(value=cat_table.loc[:,"title_nl"][0], language="nl")
+        LiteralField(value=cat_table.loc["title_en"], language="en"),
+        LiteralField(value=cat_table.loc["title_nl"], language="nl")
     ],
     description=[
-        LiteralField(value=cat_table.loc[:,"description_en"][0], language="en"),
-        LiteralField(value=cat_table.loc[:,"description_nl"][0], language="nl")
+        LiteralField(value=cat_table.loc["description_en"], language="en"),
+        LiteralField(value=cat_table.loc["description_nl"], language="nl")
     ],
     contact_point=HRIVCard(
-        hasEmail="mailto:" + cat_table.loc[:,"contactPoint_email"][0],
-        formatted_name=cat_table.loc[:,"contactPoint_name"][0]),
+        hasEmail="mailto:" + cat_table.loc["contactPoint_email"],
+        formatted_name=cat_table.loc["contactPoint_name"]),
     publisher=HRIAgent(
-        name=[LiteralField(value=cat_table.loc[:,"publisher_name_en"][0], language="en"),
-              LiteralField(value=cat_table.loc[:,"publisher_name_nl"][0], language="nl")],
-        identifier=[cat_table.loc[:,"publisher_identifier"][0]],
-        homepage=URIRef(cat_table.loc[:,"publisher_url"][0]),
-        mbox="mailto:" + cat_table.loc[:,"publisher_email"][0]
+        name=[LiteralField(value=cat_table.loc["publisher_name_en"], language="en"),
+              LiteralField(value=cat_table.loc["publisher_name_nl"], language="nl")],
+        identifier=[cat_table.loc["publisher_identifier"]],
+        homepage=URIRef(cat_table.loc["publisher_url"]),
+        mbox="mailto:" + cat_table.loc["publisher_email"]
     ),
     dataset=[])
         graph.parse(data=catalog.to_graph(url).serialize())
@@ -235,10 +234,8 @@ class HealthRIConverterv2:
         graph.add((contact_point, URIRef("http://www.w3.org/2006/vcard/ns#fn"), Literal(row.loc["contactPoint_name"],datatype=XSD.string)))
         graph.add((dataset, DCAT.contactPoint, contact_point))
 
-    def pydantic_dataset(self, csv, graph:Graph, URI):
-        dat_table = pd.read_csv(csv, sep=";",header=0) # get data
-        for index, row in dat_table.iterrows():
-            dataset = HRIDataset(
+    def pydantic_dataset(self, row: pd.Series, graph:Graph, URI):
+        dataset = HRIDataset(
         contact_point=HRIVCard(
             hasEmail=URIRef("mailto:" + row.loc["contactPoint_email"]),
             formatted_name=Literal(row.loc["contactPoint_name"]))
