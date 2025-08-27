@@ -135,7 +135,6 @@ class Converter(metaclass=ABCMeta):
         publisher_type=None
     )
 
-
     def vcard_rdf(self, metadata: Series) -> HRIVCard:
         vcard=HRIVCard(
         hasEmail="mailto:" + metadata.loc["contactPoint_email"],
@@ -143,7 +142,7 @@ class Converter(metaclass=ABCMeta):
         return vcard
 
 
-    def catalog_rdf(self, metadata: Series, creators: list[HRIAgent], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None], url) -> HRICatalog:
+    def catalog_rdf(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None], url) -> HRICatalog:
         catalog = HRICatalog(
             title=[
                 LiteralField(value=metadata.loc["title_en"], language="en"),
@@ -310,7 +309,9 @@ class Converter(metaclass=ABCMeta):
         :param graph: graph containing dataset information
         :type graph: Graph
         """
-        #TODO this function blindly merges strings, this could result in duplicate paragraphs in the FDP resource descriptions either the SOP for Mica has to change so dataset descriptions are fully autominous or we have to figure out a way to only select relevant descriptions.
+        #TODO this function blindly merges strings, this could result in duplicate paragraphs in the FDP resource descriptions.
+        #  either the SOP for Mica has to change so dataset descriptions are fully autominous or 
+        # we have to figure out a way to only select relevant descriptions.
         triples = graph.triples((dataset, DCTERMS.description, None)) # query graph for all descriptions associated to the new resource
         descriptions = ""
         for s, p, o in triples:
