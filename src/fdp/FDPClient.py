@@ -6,6 +6,11 @@ import requests
 import json
 from rdflib import Graph, RDF, URIRef, FOAF, DCAT, DCTERMS
 
+from pathlib import Path
+import sys
+path_root = Path(__file__).parents[1]
+sys.path.append(str(path_root))
+from graphutils import *
 
 
 class FDPClient:
@@ -176,7 +181,7 @@ class FDPClient:
             'Referer': resource_url + "/edit"
         }
         response = requests.request("PUT", resource_url, data=body.encode("utf-8"), headers=headers)
-        print(response)
+        #print(response)
         return response
     
     def upload_data(self, data, resource_name="Catalog"):
@@ -328,6 +333,10 @@ class FDPClient:
         succeeds, we get the current content on the FDP and
         replace all values that are in the new_graph within the
         FDP_graph.
+        We use the dcat_type to extract the main subject
+        as there should only be one resource with the type
+        in the graph.
+
         :param url: the url of the FDP that should be able to handle requests
         :type url: str
         :param dcat_type: RDFLib DCAT resource type URIRef
@@ -341,13 +350,13 @@ class FDPClient:
         FDP_graph = Graph().parse(data=content)
         #set_changes(new_graph, FDP_graph)
 
-        new_id = self.get_resource_id(dcat_type, new_graph)
+        new_id = self.get_resource_id(dcat_type, new_graph) 
         FDP_id = self.get_resource_id(dcat_type, FDP_graph)
         if new_id != FDP_id:
-            IndexError("resource id {} does not match with current update!".format(url))
+            raise IndexError("resource id {} does not match with current update!".format(url))
         else:
             #assume that object is fdp/new URL
-            self.subject_replace(url, node_id=self.PURL + "new", dcat_type=dcat_type, graph=new_graph)
+            subject_replace(url, node_id=self.PURL + "new", dcat_type=dcat_type, graph=new_graph)
             #print(FDP_graph.serialize())
             old_agents = [triple for triple in FDP_graph.triples((None, RDF.type, FOAF.Agent))]
             old_Kinds = [triple for triple in FDP_graph.triples((None, RDF.type, URIRef("http://www.w3.org/2006/vcard/ns#Kind")))]
@@ -361,7 +370,7 @@ class FDPClient:
         return FDP_graph
 
 
-    def get_dataset_id_purls(self, graph):
+    def get_dataset_id_purls(self, graph: Graph) -> dict:
         """
         Get all datasets for a given catalog
         first get the dataset purls
@@ -392,3 +401,32 @@ class FDPClient:
         # extract the identifier from datasets
         # return identifier: purl dictionary
         return datasets
+    
+    def update_catalog(self, catalog_purl, graph):
+        """
+        Update a given catalog and get the child datasets
+        of the given catalog for further update.
+        :param catalog_purl: url associated with the FDP to update
+        :type catalog_purl: str
+        :param graph: new catalog metadata content
+        :type graph: RDFLib Graph
+        """
+        #parser.graph.set((URIRef(PURL + "new"), DCTERMS.description , Literal("check check"))) #HACK debug reporter
+        catalog_graph = self.update_resource(catalog_purl, DCAT.Catalog, graph)
+        return catalog_graph
+
+    def get_dataset_nodes(self, graph:Graph) -> list:
+        """
+        Obtain blank node id's inside the graph
+
+        :param graph:
+        :type graph:
+        :return:
+        :rtype:
+        """
+        query = """PREFIX dcat: <http://www.w3.org/ns/dcat#> 
+        SELECT ?s WHERE {
+        ?s a dcat:Dataset
+        }"""
+        res = graph.query(query)
+        return [id for id in res]

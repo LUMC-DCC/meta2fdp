@@ -38,51 +38,6 @@ dataset_shacl_path = config["file_paths"]["dataset_shacl"]
 
 
 
-def update_catalog(catalog_purl, graph):
-    """
-    Update a given catalog and get the child datasets
-    of the given catalog for further update.
-    :param catalog_purl: url associated with the FDP to update
-    :type catalog_purl: str
-    :param graph: new catalog metadata content
-    :type graph: RDFLib Graph
-    :return:  dictionary with key=dataset identifier: value=purl
-    :rtype: dict
-    """
-    #parser.graph.set((URIRef(PURL + "new"), DCTERMS.description , Literal("check check"))) #HACK debug reporter
-    catalog_graph = client.update_resource(catalog_purl, DCAT.Catalog, graph) #HACK should make a seperate function to do this
-    datasets = client.get_dataset_id_purls(catalog_graph)
-    return datasets
-
-def get_dataset_nodes(graph:Graph) -> list:
-    """
-    Obtain blank node id's inside the graph
-
-    :param graph:
-    :type graph:
-    :return:
-    :rtype:
-    """
-    query = """PREFIX dcat: <http://www.w3.org/ns/dcat#> 
-    SELECT ?s WHERE {
-    ?s a dcat:Dataset
-    }"""
-    res = graph.query(query)
-    return [id for id in res]
-
-def dataset_upload(dataset_graph: Graph, fdp_dataset_dictionary: dict, catalog_purl: str) -> None:
-    if config["mode"]["replace"] == True:
-        try:
-            dataset_identifier = dataset_graph.value(subject=URIRef(PURL + "new"), predicate=DCTERMS.identifier)
-            matching_purl = fdp_dataset_dictionary[dataset_identifier]
-            client.update_resource(matching_purl, DCAT.Dataset, dataset_graph)
-        except KeyError:
-            Warning("Missing dataset on FDP: {dataset_identifier} ")
-            resource_string = client.link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
-            client.upload_data(dataset_graph.serialize(), "Dataset")
-    else:
-        resource_string = client.link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
-        client.upload_data(dataset_graph.serialize(), "Dataset")
 
 
 def excel_parsing():

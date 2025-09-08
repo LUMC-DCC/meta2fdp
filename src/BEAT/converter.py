@@ -2,10 +2,10 @@
 Abstract class of a converter module. This class dictates input and
 output of any converter class
 """
-from rdflib import Graph, RDF, Literal, URIRef, DCTERMS, XSD, Namespace
-from pandas import Series, DataFrame
+from rdflib import Graph, Literal, URIRef, DCTERMS, XSD, Namespace
+from pandas import Series
 from abc import ABCMeta, abstractmethod
-from typing import List, Union
+from typing import  Union
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog, 
@@ -16,6 +16,7 @@ from sempyro.hri_dcat import (
     HRIDataService,
     HRIDatasetSeries
 )
+
 
 
 # TODO: factory function that generates a converter class based on available mappings:
@@ -161,7 +162,7 @@ class Converter(metaclass=ABCMeta):
         # print("debug")
         return catalog
 
-    def sempyro_catalog(self, cat_table: DataFrame, graph: Graph, url=None):
+    def sempyro_catalog(self, cat_table: Series, graph: Graph, url=None):
         #Proof of concept function, needs to be reworked to be more flexible with input
         catalog = HRICatalog(
     title=[
@@ -223,114 +224,30 @@ class Converter(metaclass=ABCMeta):
         number_of_records=LiteralField(value=str(row.loc["numberOfRecords"]), datatype=XSD.nonNegativeInteger),
         number_of_unique_individuals=LiteralField(value=str(row.loc["numberOfUniqueIndividuals"]), datatype=XSD.nonNegativeInteger)
         )
-        graph.parse(data=dataset.to_graph(URI + str(row.loc["identifier"])).serialize())
+        identifier= URI + str(row.loc["identifier"])
+        graph.parse(data=dataset.to_graph(identifier).serialize())
+        self.dataset_ids.append(identifier)
+        return identifier
     
 
-    @abstractmethod
-    def dataset_rdf(self, metadata, graph: Graph) -> HRIDataset:
-        raise NotImplemented
+    #@abstractmethod
+    #def dataset_rdf(self, metadata, graph: Graph) -> HRIDataset:
+    #    raise NotImplemented
 
 
-    @abstractmethod
-    def distribution_rdf(self, metadata, graph: Graph) -> HRIDistribution:
-        raise NotImplemented
+    #@abstractmethod
+    #def distribution_rdf(self, metadata, graph: Graph) -> HRIDistribution:
+    #    raise NotImplemented
 
 
-    @abstractmethod
-    def datasetseries_rdf(self, metadata, graph: Graph) -> HRIDatasetSeries:
-        raise NotImplemented
+    #@abstractmethod
+    #def datasetseries_rdf(self, metadata, graph: Graph) -> HRIDatasetSeries:
+    #    raise NotImplemented
 
 
-    @abstractmethod
-    def dataservice_rdf(self, metadata, graph: Graph) -> HRIDataService:
-        raise NotImplemented
+    #@abstractmethod
+    #def dataservice_rdf(self, metadata, graph: Graph) -> HRIDataService:
+    #    raise NotImplemented
 
 
-    def link_resource(self, subject, predicate, object, graph: Graph) -> None:
-        """
-        This function reads a graph, finds the
-        subject and links it to the given object.
-
-        :param subject: the uri associated with the subject node of the resource
-        :type purl: URIRef
-        :param predicate: predicate to assign
-        :type predicate: URIRef
-        :param object: the uri associated with the object node of the resource
-        :type object: URIRef
-        :param graph: Resource graph 
-        :type graph: RDF Graph object
-        """
-        graph.add((subject, predicate, URIRef(object)))
-
-
-    def subject_replace(self, PURL, node_id, dcat_type, graph) -> None:
-        """
-        Build a SPARQL CONSTRUCT query that replaces the object with the given
-        DCAT type and run it on the given graph.
-
-        :param PURL: new subject URI
-        :type PURL: string
-        :param node_id: original uri of object
-        :type node_id: string
-        :param dcat_type: RDFlib DCAT uri of the resource used as a tag on what object to replace
-        :type dcat_type: RDFLib URIRef
-        :param graph: graph to replace the main object from
-        :type graph: RDFLib Graph
-        """
-        firstpart = """
-        PREFIX dcat: <http://www.w3.org/ns/dcat#>
-        PREFIX dcterms: <http://purl.org/dc/terms/>
-        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-        PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-
-        CONSTRUCT {
-        ?newResource ?p ?property .
-        }
-        WHERE {
-        ?resource a <"""
-        middle = """> ;
-                    ?p ?property .
-        BIND(<"""
-        lastpart = """> AS ?newResource)
-        }
-        """
-        q = firstpart + str(dcat_type) + middle + str(PURL) + lastpart
-        qres = graph.query(q)
-        for s, p, o in qres:
-            graph.add((s,p,o))
-        graph.remove((node_id, None, None))
-
-    def _merge_desc(self, dataset, graph):
-        """
-        Merge all collected descriptions into a single string (xsd:string) required Health-RI v1 model.  
-
-        :param dataset: dataset node id 
-        :type dataset: str
-        :param graph: graph containing dataset information
-        :type graph: Graph
-        """
-        #TODO this function blindly merges strings, this could result in duplicate paragraphs in the FDP resource descriptions.
-        #  either the SOP for Mica has to change so dataset descriptions are fully autominous or 
-        # we have to figure out a way to only select relevant descriptions.
-        triples = graph.triples((dataset, DCTERMS.description, None)) # query graph for all descriptions associated to the new resource
-        descriptions = ""
-        for s, p, o in triples:
-            descriptions = descriptions + "\n" + o
-            graph.remove((s,p,o))
-        graph.add((dataset, DCTERMS.description, Literal(descriptions, datatype=XSD.string))) #HACK Health-RI has currently forced descriptions to be xsd string value type
     
-    def get_dataset_nodes(self, graph:Graph) -> list:
-        """
-        Obtain blank node id's inside the graph
-
-        :param graph:
-        :type graph:
-        :return:
-        :rtype:
-        """
-        query = """PREFIX dcat: <http://www.w3.org/ns/dcat#> 
-        SELECT ?s WHERE {
-        ?s a dcat:Dataset
-        }"""
-        res = graph.query(query)
-        return [id for id in res]
