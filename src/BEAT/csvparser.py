@@ -34,22 +34,35 @@ class CSVParser(Converter):
 
 
     def replace_datasets(self, targeturl):
+        """Function to update the datasets that exist under a FDP catalog
+        We first obtain the identifier (hopefully unique) of the datasets on the FDP.
+        Then we check if the identifiers of the datasets in the local graph match
+        with the ones on the FDP. If they match, the content on the FDP Is updated
+        with the content in the local graph;. Otherwise a the local dataset graph
+        is uploaded as a new dataset under the given target catalog.
+
+        :param targeturl: PURL of a FDP catalog
+        :type targeturl: str
+        """
         # TODO This is inefficient: we get the data to get a list of identifiers to match
         # Figure out a way to reduce API calls to match parsed dataset with FDP datasets
         FDP_cat_content = self.client.get_metadata(targeturl)
-        FDP_cat_graph = Graph()# use the internal function to generate a HRI compatible graph (take only the graph and not the prefix map made by the function) and parse the metadata on the FDP into a local graph
+        FDP_cat_graph = Graph()
         FDP_cat_graph.parse(data=FDP_cat_content)
-        FDP_dataset_ids = self.client.get_dataset_id_purls(FDP_cat_graph) # get FDP datsasets ids (should be published)
+        FDP_dataset_ids = self.client.get_dataset_id_purls(FDP_cat_graph)  # get FDP datsasets ids (that are published)
+        id_url_map = []
+        for key in FDP_dataset_ids:
+            id_url_map.append(self.client.PURL + key)
         #HACK current implementation assumes that all datasets in file should
         # be updated
-        for dataset_id in self.dataset_ids: # get internal node id for datasets in local graph
-            if dataset_id in FDP_dataset_ids.keys(): #FIXME does not work on END CURA BOT
-                dataset = self.graph.cbd(dataset_id)
-                local_dataset_identifier = dataset.value(subject=URIRef(PURL + "new"),
+        for dataset_id in self.dataset_ids:  # get internal node id for datasets in local graph
+            if dataset_id in id_url_map:
+                dataset = self.graph.cbd(dataset_id) # extract graph related to node/dataset id
+                local_dataset_identifier = dataset.value(subject=dataset_id,
                                                 predicate=DCTERMS.identifier)
                 matching_purl = FDP_dataset_ids[local_dataset_identifier]
                 self.client.update_resource(matching_purl, DCAT.Dataset, dataset) 
-            else:
+            else:  # upload new dataset:
                 print("new dataset {} found, adding to catalog".format(dataset_id))
                 dataset_graph = self.graph.cbd(dataset_id)
                 subject_replace(PURL + "new", dataset_id, DCAT.Dataset, dataset_graph)
