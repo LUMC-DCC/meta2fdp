@@ -27,6 +27,18 @@ class CSVParser(Converter):
 
 
     def replace_catalog(self, catalog_metadata: pd.Series, targeturl: URIRef) -> list:
+        """Use the given metadata to update a FDP catalog with the given PURL.
+
+        :param catalog_metadata: metadata of a catalog
+        :type catalog_metadata: pd.Series
+        :param targeturl: PURL of a catalog (example: 
+        https://app.fairdatapoint.org/catalog/60234295-e5c9-45e7-b96f-6bed7bba3134)
+        :type targeturl: URIRef
+        :return: The left-join graph that has been uploaded to the FDP.
+        it contains the content on the FDP that has not changed and the replaced
+        content from catalog_metadata.
+        :rtype: list
+        """
         catalog_id = self.sempyro_catalog(catalog_metadata, self.graph, self.client.URL + "/new") # fix catalog generator
         subject_replace(self.client.PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)
         new_catalog = self.client.update_catalog(targeturl, self.graph.cbd(catalog_id)) # update catalog and retrieve a list of child nodes.
@@ -104,13 +116,15 @@ class CSVParser(Converter):
                 dataset_purl = self.client.upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
                 if publish:
                     self.client.publish_metadata(dataset_purl)
-    
-    def update_cat_dat(self, catalog_file_path: str, datasets_file_path:str, cat_PURL: URIRef, FDP_PURL: URIRef):
-        """_summary_
 
-        :param catalog_file_path: _description_
+
+    def update_cat_dat(self, catalog_file_path: str, datasets_file_path:str, cat_PURL: URIRef, FDP_PURL: URIRef):
+        """Update a catalog and it's datasets with the content of the given csv files.
+        csv has a header and the seperator is assumed to be ;
+
+        :param catalog_file_path: csv file containing catalog metadata with a header and ; delimiter
         :type catalog_file_path: str
-        :param datasets_file_path: _description_
+        :param datasets_file_path: csv file containing metadata of datasets with a header and ; delimiter
         :type datasets_file_path: str
         :param PURL: URI that points to the catalog to be updated
         :type PURL: URIRef
