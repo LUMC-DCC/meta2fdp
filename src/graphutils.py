@@ -3,22 +3,6 @@
 """
 from rdflib import Graph, Literal, URIRef, DCTERMS, XSD
 
-def link_resource(subject, predicate, object, graph: Graph) -> None:
-        """
-        This function reads a graph, finds the
-        subject and links it to the given object.
-
-        :param subject: the uri associated with the subject node of the resource
-        :type purl: URIRef
-        :param predicate: predicate to assign
-        :type predicate: URIRef
-        :param object: the uri associated with the object node of the resource
-        :type object: URIRef
-        :param graph: Resource graph 
-        :type graph: RDF Graph object
-        """
-        graph.add((subject, predicate, URIRef(object)))
-
 
 def subject_replace(PURL, node_id, dcat_type, graph) -> None:
     """
