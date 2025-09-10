@@ -1,35 +1,33 @@
+"""Excel parser for BEAT COVID and CoMoDuLate metadata
+
+:return: This class is a proof of concept of using a single excel file to describe metadata of a study represented as a catalog and its associated datasets on a FDP. It handles the seperation of individual classes into seperate sheets and the use of columns for creator attribution. 
+:rtype: ExcelParser
+"""
 import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
-from rdflib.namespace import Namespace
+import keyring
+
+import yaml
+from datetime import datetime
+
+from os import getenv
+from pathlib import Path
+import sys
+path_root = Path(__file__).parents[1]
+sys.path.append(str(path_root))
+
+from fdp.FDPClient import FDPClient
 from converter import Converter
-from typing import List, Union
-from sempyro import LiteralField
-from sempyro.hri_dcat import (
-    HRICatalog, 
-    HRIDataset, 
-    HRIVCard, 
-    HRIAgent, 
-    HRIDistribution,
-    HRIDataService,
-    HRIDatasetSeries
-)
+from graphutils import *
 
 
 class ExcelParser(Converter):
-    def dataset_rdf(self, metadata, graph: Graph) -> HRIDataset:
-        NotImplementedError()
 
-
-    def distribution_rdf(self, metadata, graph: Graph) -> HRIDistribution:
-        NotImplementedError()
-
-
-    def datasetseries_rdf(self, metadata, graph: Graph) -> HRIDatasetSeries:
-        NotImplementedError()
-
-
-    def dataservice_rdf(self, metadata, graph: Graph) -> HRIDataService:
-        NotImplementedError()
+    def __init__(self, file_path, config, client = FDPClient, class_map=None, debug=False):
+        super().__init__(class_map, debug)
+        self.config = config
+        self.client = client
+        self.file_path = file_path
 
     def sheet_to_rdf(self, node_id, resource_type, sheet, graph: Graph, shacl):
         """
@@ -274,19 +272,75 @@ class ExcelParser(Converter):
 
         #print(self.graph.serialize())
     
-    def _merge_desc(self, dataset, graph):
-        """
-        Merge all collected descriptions into a single string (xsd:string) required Health-RI v1 model.  
 
-        :param dataset: dataset node id 
-        :type dataset: str
-        :param graph: graph containing dataset information
-        :type graph: Graph
-        """
-        #TODO this function blindly merges strings, this could result in duplicate paragraphs in the FDP resource descriptions either the SOP for Mica has to change so dataset descriptions are fully autominous or we have to figure out a way to only select relevant descriptions.
-        triples = graph.triples((dataset, DCTERMS.description, None)) # query graph for all descriptions associated to the new resource
-        descriptions = ""
-        for s, p, o in triples:
-            descriptions = descriptions + "\n" + o
-            graph.remove((s,p,o))
-        graph.add((dataset, DCTERMS.description, Literal(descriptions, datatype=XSD.string))) #HACK Health-RI has currently forced descriptions to be xsd string value type
+    def dataset_upload(self, dataset_graph: Graph, catalog_purl: str, fdp_dataset_dictionary: dict=None) -> None:
+        if self.config["mode"]["replace"] == True:
+            try:
+                dataset_identifier = dataset_graph.value(subject=URIRef(PURL + "new"), predicate=DCTERMS.identifier)
+                matching_purl = fdp_dataset_dictionary[dataset_identifier]
+                self.client.update_resource(matching_purl, DCAT.Dataset, dataset_graph)
+            except KeyError:
+                Warning("Missing dataset on FDP: {dataset_identifier} ")
+                resource_string = self.client.link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
+                dataset_purl = self.client.upload_data(dataset_graph.serialize(), "Dataset")
+                if self.config["mode"]["publish"]:
+                    self.client.publish_metadata(dataset_purl)
+        else:
+            resource_string = self.client.link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
+            dataset_purl = self.client.upload_data(dataset_graph.serialize(), "Dataset")
+            if self.config["mode"]["publish"]:
+                    self.client.publish_metadata(dataset_purl)
+
+
+    def parse(self):
+        self.parse_catalog(shacl=self.config["file_paths"]["catalog_shacl"])
+        subject_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)
+        if self.config["mode"]["replace"] == True:
+            catalog_purl = self.config["FDP"]["catalog_purl"]
+            updated_catalog = self.client.update_catalog(catalog_purl, self.graph)
+        else:
+            catalog_purl = client.upload_resource(self.graph, URL, resource_type=DCAT.Catalog)
+            updated_catalog = None
+        print("datasets")
+        self.parse_dataset(self.config["file_paths"]["datasets_input_file"], shacl=self.config["file_paths"]["dataset_shacl"])
+        catalog_description = next(self.graph.triples((None, DCTERMS.description, None)))
+        
+        for dataset_node_id in self.dataset_ids:
+            dataset = self.graph.cbd(BNode(dataset_node_id))
+            dataset.remove((BNode(dataset_node_id), DCTERMS.isReferencedBy, Literal("Links to BEAT publications:")))
+            dataset.remove((BNode(dataset_node_id), DCTERMS.isReferencedBy, Literal("Links to BEAT publications")))
+            if self.config["file_paths"]["catalog_input_file"] == "data/BEAT/Health-RI Core Metadata model v2 filled BEAT.xlsx":
+                dataset.add((BNode(dataset_node_id), DCTERMS.issued, Literal(datetime(year=2024,month=2, day=4).isoformat(), datatype=XSD.dateTime)))
+                dataset.add((BNode(dataset_node_id), DCTERMS.modified, Literal(datetime(year=2024,month=2, day=4).isoformat(), datatype=XSD.dateTime)))
+            elif self.config["file_paths"]["catalog_input_file"] == "data/BEAT/Health-RI Core Metadata model v2 filled Comodulate.xlsx":
+                dataset.add((BNode(dataset_node_id), DCTERMS.issued, Literal(datetime(year=2025,month=4, day=4).isoformat(), datatype=XSD.dateTime)))
+                dataset.add((BNode(dataset_node_id), DCTERMS.modified, Literal(datetime(year=2025,month=4, day=4).isoformat(), datatype=XSD.dateTime)))
+            dataset.add((BNode(dataset_node_id), DCTERMS.license, URIRef(config["default_values_metadata"]["license"])))
+            dataset.add((BNode(dataset_node_id), URIRef("http://data.europa.eu/r5r/applicableLegislation")  , URIRef("http://data.europa.eu/eli/reg/2025/327/oj")))
+            # add catalog description:
+            dataset.add((BNode(dataset_node_id), DCTERMS.description, catalog_description[2]))
+            merge_desc(BNode(dataset_node_id), dataset)
+            subject_replace(PURL + "new", BNode(dataset_node_id), DCAT.Dataset, dataset) # replace mode also assumes FDP resource PURL
+            self.dataset_upload(dataset, catalog_purl, datasets_fdp_ids)  #FIXME This function needs the id's of dataset children of the catalog
+
+if __name__ == "__main__":
+    conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
+
+    # get default values from config file
+    with open(conf_path, "r") as config_file:
+        config = yaml.safe_load(config_file)
+
+    def connect_client():
+        ### set up connection settings to FDP server ###
+        URL = URIRef(config["FDP"]["URL"])
+        PURL = URIRef(config["FDP"]["PURL"])
+        client = FDPClient(URL, config["keyring"]["username"], keyring.get_password(config["keyring"]["fdp_service"], config["keyring"]["username"]), PURL)
+        # ping server:
+        client.check_url(URL)
+        return URL, PURL, client
+
+    URL, PURL, client = connect_client()
+    file_path = config["file_paths"]["catalog_input_file"]
+    parser = ExcelParser(file_path=file_path, config=config, client=client)
+    parser.parse()
+    
