@@ -1,11 +1,9 @@
-"""Excel parser for BEAT COVID and CoMoDuLate metadata
-
-:return: This class is a proof of concept of using a single excel file to describe metadata of a study represented as a catalog and its associated datasets on a FDP. It handles the seperation of individual classes into seperate sheets and the use of columns for creator attribution. 
-:rtype: ExcelParser
+"""Excel parser for BEAT COVID and CoMoDuLate metadata. This class is a proof of concept of using a single excel file to describe metadata of a study represented as a catalog and its associated datasets on a FDP. It handles the seperation of individual classes into seperate sheets and the use of columns for creator attribution. 
 """
 import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
 import keyring
+from typing import Union
 
 import yaml
 from datetime import datetime
@@ -18,7 +16,7 @@ sys.path.append(str(path_root))
 
 from fdp.FDPClient import FDPClient
 from converter import Converter
-from graphutils import *
+from graphutils import merge_desc, subject_replace
 
 
 class ExcelParser(Converter):
@@ -273,7 +271,17 @@ class ExcelParser(Converter):
         #print(self.graph.serialize())
     
 
-    def dataset_upload(self, dataset_graph: Graph, catalog_purl: str, fdp_dataset_dictionary: dict=None) -> None:
+    def dataset_upload(self, dataset_graph: Graph, catalog_purl: str, fdp_dataset_dictionary: dict=None) -> Union[Graph, str]:
+        """Upload a dataset based on the different modes available in the config
+
+        :param dataset_graph: metadata of a dataset.
+        :type dataset_graph: Graph
+        :param catalog_purl: URL of the catalog the dataset is part of
+        :type catalog_purl: str
+        :param fdp_dataset_dictionary: _description_, defaults to None
+        :type fdp_dataset_dictionary: dict, optional
+        :return: Graph
+        """
         if self.config["mode"]["replace"] == True:
             try:
                 dataset_identifier = dataset_graph.value(subject=URIRef(PURL + "new"), predicate=DCTERMS.identifier)
@@ -285,6 +293,7 @@ class ExcelParser(Converter):
                 dataset_purl = self.client.upload_data(dataset_graph.serialize(), "Dataset")
                 if self.config["mode"]["publish"]:
                     self.client.publish_metadata(dataset_purl)
+                return resource_string
         else:
             resource_string = self.client.link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
             dataset_purl = self.client.upload_data(dataset_graph.serialize(), "Dataset")

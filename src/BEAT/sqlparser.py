@@ -1,5 +1,7 @@
-"""
-Adapter class for MSSQL database to FDP with health-ri v2.0.0 
+"""Adapter class for MSSQL database to FDP with health-ri v2.0.0.
+
+update function not yet implemented yet.
+
 """
 from rdflib import URIRef, BNode, DCAT, Namespace
 import yaml
@@ -84,7 +86,7 @@ class SQLParser(Converter):
     def parse(self):
         """Parses the content of the samplenavigator mssql database view
         and uses it to generate a catalog and it's associated datasets.
-        These are immediatley uploaded to the FDP.
+        These are immediately uploaded to the FDP.
         """
         # get catalog information:
         cursor = self.connect_to_sql()
@@ -119,6 +121,10 @@ class SQLParser(Converter):
                 dataset_purl = self.client.upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
                 if self.config["mode"]["publish"]:
                     self.client.publish_metadata(dataset_purl)
+    
+    def update_catalog(self):
+        #TODO
+        raise NotImplementedError
         
 
 

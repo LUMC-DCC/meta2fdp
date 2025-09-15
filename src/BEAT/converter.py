@@ -1,6 +1,6 @@
-"""_summary_
-Abstract class of a converter module. This class dictates input and
-output of any converter class
+"""Originally a complete Abstract class of a converter module. A class that dictates input and
+output of any converter class. 
+But it has slowly grown into a parent class for converting metadata to RDF through different functions.
 """
 from rdflib import Graph, Literal, URIRef, DCTERMS, XSD, Namespace
 from pandas import Series
@@ -143,7 +143,27 @@ class Converter(metaclass=ABCMeta):
         return vcard
 
 
-    def catalog_rdf(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None], url) -> HRICatalog:
+    def catalog_rdf(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None], url: URIRef) -> HRICatalog:
+        """This a more generic sempyro catalog constructor that tries to build towards a more flexible
+        generation of catalogs. The main point of doing this is to seperate different classes into their own functions.
+        
+
+        :param metadata: The metadata of a catalog
+        :type metadata: Series
+        :param creators: A catalog can have 0 or more creators, which are a described as agents
+        :type creators: Union[list[HRIAgent], None]
+        :param contact_point: A catalog has one contactpoint (for now) and is described with a Vcard
+        :type contact_point: HRIVCard
+        :param publisher: Publisher should be LUMC, see configuration for default values that could be used.
+        :type publisher: HRIAgent
+        :param service: Possible dataservice where distribution access is serviced.
+        :type service: Union[HRIDataService, None]
+        :param url: Subject url / internal URL to be used to represtent the catalog
+        :type url: URIRef
+        :return: Catalog class for reuse or manipulation
+        :rtype: HRICatalog
+        """
+        # TODO switch creators to attributions (creators are specifically creators of the catalog e.g. LUMC not the authors of a study)
         catalog = HRICatalog(
             title=[
                 LiteralField(value=metadata.loc["title_en"], language="en"),
@@ -158,7 +178,7 @@ class Converter(metaclass=ABCMeta):
             publisher=publisher,
             service=service,
             dataset=[])
-        self.graph.parse(data=catalog.to_graph(url).serialize())
+        self.graph.parse(data=catalog.to_graph(url).serialize())  # put catalog into local graph
         # print("debug")
         return catalog
 
