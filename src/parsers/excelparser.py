@@ -307,9 +307,10 @@ class ExcelParser(Converter):
         if self.config["mode"]["replace"] == True:
             catalog_purl = self.config["FDP"]["catalog_purl"]
             updated_catalog = self.client.update_catalog(catalog_purl, self.graph)
+            datasets_fdp_ids = self.client.get_dataset_id_purls(updated_catalog)
         else:
             catalog_purl = client.upload_resource(self.graph, URL, resource_type=DCAT.Catalog)
-            updated_catalog = None
+            datasets_fdp_ids = None
         print("datasets")
         self.parse_dataset(self.config["file_paths"]["datasets_input_file"], shacl=self.config["file_paths"]["dataset_shacl"])
         catalog_description = next(self.graph.triples((None, DCTERMS.description, None)))

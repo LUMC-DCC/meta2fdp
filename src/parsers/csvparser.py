@@ -92,10 +92,9 @@ class CSVParser(Converter):
         """
         # TODO This is inefficient: we get the data to get a list of identifiers to match
         # Figure out a way to reduce API calls to match parsed dataset with FDP datasets
-        # FIXME make this a function (as it is also used in excelParser, should probably be in client)
-        FDP_cat_content = self.client.get_metadata(targeturl)
-        FDP_cat_graph = Graph()
-        FDP_cat_graph.parse(data=FDP_cat_content)
+        FDP_cat_response_body = self.client.get_metadata(targeturl)
+        FDP_cat_graph = Graph()  # parse response into graph structure
+        FDP_cat_graph.parse(data=FDP_cat_response_body)
         FDP_dataset_ids = self.client.get_dataset_id_purls(FDP_cat_graph)  # get FDP datsasets ids (that are published)
         id_url_map = []
         for key in FDP_dataset_ids:
@@ -116,7 +115,9 @@ class CSVParser(Converter):
                 dataset_graph.remove((BNode(dataset_id), None, None))
                 self.client.link_resource(dataset_graph, targeturl, DCAT.Dataset)
                 dataset_purl = self.client.upload_resource(dataset_graph, targeturl, resource_type=DCAT.Dataset, resource_name="Dataset")
-                self.client.publish_metadata(dataset_purl)
+                if self.config["mode"]["publish"]:
+                    self.client.publish_metadata(dataset_purl)
+
 
 
     def update_cat_dat(self, catalog_file_path: str, datasets_file_path:str, cat_PURL: URIRef, FDP_PURL: URIRef):
