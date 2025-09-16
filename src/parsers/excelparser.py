@@ -1,4 +1,4 @@
-"""Excel parser for BEAT COVID and CoMoDuLate metadata. This class is a proof of concept of using a single excel file to describe metadata of a study represented as a catalog and its associated datasets on a FDP. It handles the seperation of individual classes into seperate sheets and the use of columns for creator attribution. 
+"""Excel parser for BEAT COVID and CoMoDuLate metadata. This class is a proof of concept of using a single excel file to describe metadata of a study represented as a catalog and its associated datasets on a FDP. It handles the seperation of individual classes into seperate sheets and the use of columns for creator attribution. This class was build during the transition period between v1 and v2 of the Health-Ri Schema, and is compatible with both.
 """
 import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
@@ -84,7 +84,7 @@ class ExcelParser(Converter):
         Creates a blank node in the given graph that
          represents a creator agent from a given dictionary.
         TODO make this work based on the URI's available in the sheet. 
-        TODO value positions are now hardcoded
+        TODO value positions/paths are now hardcoded
 
         :param column: value column in the given dataframe
         :type column: dict
@@ -151,6 +151,7 @@ class ExcelParser(Converter):
         for sheet_name in sequence:
             # loop through the sheets in the excel file
             dataset_id = creator_link[sheet_name]
+            # remove all contactpoints, creators and publishers
             self.graph.remove((BNode(dataset_id), DCAT.contactPoint, None))
             self.graph.remove((BNode(dataset_id), DCTERMS.creator, None))
             self.graph.remove((BNode(dataset_id), DCTERMS.publisher, None))
@@ -302,6 +303,9 @@ class ExcelParser(Converter):
 
 
     def parse(self):
+        """Parse the excel sheet given to the class on initializing. Uploads metadata to the FDP.
+        This funciton does a lot of 
+        """
         self.parse_catalog(shacl=self.config["file_paths"]["catalog_shacl"])
         subject_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)
         if self.config["mode"]["replace"] == True:
@@ -317,21 +321,22 @@ class ExcelParser(Converter):
         
         for dataset_node_id in self.dataset_ids:
             dataset = self.graph.cbd(BNode(dataset_node_id))
-            dataset.remove((BNode(dataset_node_id), DCTERMS.isReferencedBy, Literal("Links to BEAT publications:")))
+            # HACK clean up metadata based on manual verification of file contents:
+            dataset.remove((BNode(dataset_node_id), DCTERMS.isReferencedBy, Literal("Links to BEAT publications:")))  # Remove the hint for researchers for filling in related papers
             dataset.remove((BNode(dataset_node_id), DCTERMS.isReferencedBy, Literal("Links to BEAT publications")))
-            if self.config["file_paths"]["catalog_input_file"] == "data/BEAT/Health-RI Core Metadata model v2 filled BEAT.xlsx":
+            if self.config["file_paths"]["catalog_input_file"] == "data/BEAT/Health-RI Core Metadata model v2 filled BEAT.xlsx":  # HACK Manual addition of specific time metadata was publicized.
                 dataset.add((BNode(dataset_node_id), DCTERMS.issued, Literal(datetime(year=2024,month=2, day=4).isoformat(), datatype=XSD.dateTime)))
                 dataset.add((BNode(dataset_node_id), DCTERMS.modified, Literal(datetime(year=2024,month=2, day=4).isoformat(), datatype=XSD.dateTime)))
             elif self.config["file_paths"]["catalog_input_file"] == "data/BEAT/Health-RI Core Metadata model v2 filled Comodulate.xlsx":
                 dataset.add((BNode(dataset_node_id), DCTERMS.issued, Literal(datetime(year=2025,month=4, day=4).isoformat(), datatype=XSD.dateTime)))
                 dataset.add((BNode(dataset_node_id), DCTERMS.modified, Literal(datetime(year=2025,month=4, day=4).isoformat(), datatype=XSD.dateTime)))
-            dataset.add((BNode(dataset_node_id), DCTERMS.license, URIRef(config["default_values_metadata"]["license"])))
-            dataset.add((BNode(dataset_node_id), URIRef("http://data.europa.eu/r5r/applicableLegislation")  , URIRef("http://data.europa.eu/eli/reg/2025/327/oj")))
+            dataset.add((BNode(dataset_node_id), DCTERMS.license, URIRef(config["default_values_metadata"]["license"])))  # FIXME this is an artefact from Health-RI v1 compliance, only distributions have a license
+            dataset.add((BNode(dataset_node_id), URIRef("http://data.europa.eu/r5r/applicableLegislation")  , URIRef("http://data.europa.eu/eli/reg/2025/327/oj")))  # Default EU legislation for datasets
             # add catalog description:
             dataset.add((BNode(dataset_node_id), DCTERMS.description, catalog_description[2]))
-            merge_desc(BNode(dataset_node_id), dataset)
+            merge_desc(BNode(dataset_node_id), dataset)  # combine all descriptions that have been given into the dataset description as to not lose the context for the Health-RI health data catalog. (which only parses datasets)
             subject_replace(PURL + "new", BNode(dataset_node_id), DCAT.Dataset, dataset) # replace mode also assumes FDP resource PURL
-            self.dataset_upload(dataset, catalog_purl, datasets_fdp_ids)  #FIXME This function needs the id's of dataset children of the catalog
+            self.dataset_upload(dataset, catalog_purl, datasets_fdp_ids)
 
 if __name__ == "__main__":
     conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
