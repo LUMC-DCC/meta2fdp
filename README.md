@@ -1,93 +1,146 @@
 # Samplenavigator2FDP
 
+## description
 
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://git.lumc.nl/lumc-dcc/samplenavigator2fdp.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://git.lumc.nl/lumc-dcc/samplenavigator2fdp/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+### Install Mamba
+Packages are managed using the cross-platform package manager [Mamba](https://mamba.readthedocs.io/en/latest/index.html). Mamba is compatible with [Conda](https://conda.io/projects/conda/en/latest/index.html) but generally [faster](https://conda.org/learn/faq/) at resolving dependencies. Mamba can be installed using a [Miniforge installer](https://github.com/conda-forge/miniforge).
+
+```{bash}
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+```
+Note: Mamba is a recommendation, as it is compatible with conda you can use conda as well.
+
+### Create and activate `conda`/`mamba` environment
+
+Dependencies are specified in `environment.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
+
+```{bash}
+mamba env create -f environment.yml
+mamba activate .conda
+```
+
+#### Install local `fairopal` Python package 
+
+Install local package in the activated environment in development mode using `pip` but without installing package dependencies. Any dependencies must be installed in the `conda` environment, i.e., specified in `envs/environment.yml`.
+
+```
+pip install --no-build-isolation --no-deps -e .
+```
+
+#### Install missing packages
+
+Do not use `pip` for installing missing Python packages. The preferred way to install them is `mamba`. To find the missing package, search [anaconda.org](https://anaconda.org/). The preferred installation channel is [conda-forge](https://anaconda.org/conda-forge/repo). Use `mamba install` to install a package into the activated environment. 
+
+Example: install [`pymongo`](https://anaconda.org/conda-forge/pymongo).
+
+```
+mamba install conda-forge::pymongo
+```
+
+Don't forget to add the newly installed package including its version to the dependencies in `envs/environment.yml`. Preferably, do not export the `environment.yml` file using `mamba env export`. If this is done anyways, use the `--from-history` flag to ensure cross-platform compatibility.
+
+## Running the pipeline
+
+### Set up keyring library:
+When running the pipeline in WSL, keyring-pybridge is needed to run keyring with Windos Credential Locker. Use setup_keyring_env.sh to enable a connection to the windows system for keyring.
+NOTE: This script adds two export commands to bashrc file, this file is run on startup of a terminal. This change is permanent until manually removed by the user.
+
+### configuration file
+```
+Which mode the pipeline should run, if we want to replace current metadata of an existing catalog we set replace to True and set a catalog_purl URL below. Two different input formats are currently accepted: "Excel" or "csv"
+mode: 
+  replace: False
+  input_format: csv
+
+FDP related settings, the URL should not have a / at the end, the PURL should have one. The catalog_purl is ignored when replace is False, this is the URI/URL to the catalog that should be updated with the content of the input files.
+FDP:
+  URL: https://fdp.example.org
+  PURL: https://fdp.example.org/
+  catalog_purl: https://fdp.example.org/catalog/62fda175-c196-46f4-a067-d24a6de65468
+
+Keyring parameters:
+keyring:
+  system: test-FDP
+  username: email
+
+We recommend using full paths to the data and schema files. catalog_shacl and dataset_shacl are the data schema/model that should be complied to. Each file corresponds to a FDP resource concept. catalog_input_file contains one catalog and datasets_input_file contains all datasets to upload. In Excel mode, these should be the same file and follow the example in data seen in the 'data' folder.
+file_paths: # settings for running the main inside src:
+  catalog_shacl: PATH
+  dataset_shacl: PATH
+  catalog_input_file: PATH
+  datasets_input_file: PATH
+```
+
+Once the configuration file is set, you can run the pipeline by running the src/BEAT/main.py file. (preferably inside it's folder)
+
+## Documentation generation
+
+
+### Documentation with Sphinx
+
+*Note that this is not needed, when files are already added to the Git repository! It is only needed when `doc/` is empty.*
+
+The documentation for this project is generated using [Sphinx](https://www.sphinx-doc.org/en/master/index.html). 
+
+## System variables
+To ensure Sphinx is able to parse the project from the local install of the Python package set the following environment variables:
+```
+export CONF_PATH="/PATHTOPROJECT/config/FDP/configuration.yaml"
+
+```
+
+## new documentation
+To create the required files from scratch, follow the instructions in the [Sphinx documentation *Getting Started*](https://www.sphinx-doc.org/en/master/usage/quickstart.html). In the example, `sphinx-quickstart` is run in the `doc` directory and source and build directories are separated.
+
+```
+sphinx-quickstart
+```
+
+This generates the following files and folders:
+
+```
+Makefile
+build
+make.bat
+source
+
+./build:
+
+./source:
+_static
+_templates
+conf.py
+index.rst
+
+./source/_static:
+
+./source/_templates:
+```
+
+
+
+### Edit documentation
+
+Add [docstrings](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html) to the `fairopal` package source code to document Python modules, classes, and functions.
+
+Edit `doc/source/conf.py` to configure the project, e.g., specifying a different template, the path to the source directory of a Python module, or adding extensions. [`sphinx.ext.autodoc`](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html) can be used to automatically include informtion from docstrings.
+
+Edit `doc/source/index.rst` to add content to the documentation.
+
+### Build documentation
+
+Run this command from the `doc/` directory. It will create `html` files in `doc/build/html/`.
+
+```
+sphinx-build -M html source build
+```
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+For usage of parsers check __main__ functions on the bottom of the file.
 
 ## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+TODO
