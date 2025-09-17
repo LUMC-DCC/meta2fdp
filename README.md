@@ -51,28 +51,44 @@ NOTE: This script adds two export commands to bashrc file, this file is run on s
 
 ### configuration file
 ```
-Which mode the pipeline should run, if we want to replace current metadata of an existing catalog we set replace to True and set a catalog_purl URL below. Two different input formats are currently accepted: "Excel" or "csv"
+# Which mode the pipeline should run, if we want to replace current metadata of an existing catalog we set replace to True and set a catalog_purl URL below.
 mode: 
   replace: False
-  input_format: csv
+  publish: True # If metadata should be published on the FDP.
 
-FDP related settings, the URL should not have a / at the end, the PURL should have one. The catalog_purl is ignored when replace is False, this is the URI/URL to the catalog that should be updated with the content of the input files.
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+***REMOVED***
+
+
+keyring: 
+  fdp_service: test-FDP
+  username: k.m.p.cremers@lumc.nl
+
 FDP:
   URL: https://fdp.example.org
-  PURL: https://fdp.example.org/
-  catalog_purl: https://fdp.example.org/catalog/62fda175-c196-46f4-a067-d24a6de65468
-
-Keyring parameters:
-keyring:
-  system: test-FDP
-  username: email
-
-We recommend using full paths to the data and schema files. catalog_shacl and dataset_shacl are the data schema/model that should be complied to. Each file corresponds to a FDP resource concept. catalog_input_file contains one catalog and datasets_input_file contains all datasets to upload. In Excel mode, these should be the same file and follow the example in data seen in the 'data' folder.
+  PURL: https://fdp.example.org/  #notice the / added to the URL.
+  catalog_purl: https://fdp.example.org/catalog/8c393f31-7e86-44dc-94f0-61169f6b42b5
+  
 file_paths: # settings for running the main inside src:
-  catalog_shacl: PATH
-  dataset_shacl: PATH
-  catalog_input_file: PATH
-  datasets_input_file: PATH
+  person_directory: n  #used in old LLS implementation
+  mapping_directory: n
+  catalog_shacl: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\schema\shacl\v2\Catalog.ttl
+  dataset_shacl: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\schema\shacl\v2\Dataset.ttl
+  catalog_input_file: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\data\BEAT\Health-RI Core Metadata model v2 filled BEAT.xlsx
+  datasets_input_file: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\data\BEAT\Health-RI Core Metadata model v2 filled BEAT.xlsx
+
+default_values_metadata:  # not used (yet) in implementations beyond LLS
+  namespace: https://fdp.example.org/
+  theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
+  license: http://example.org/niet-open  # we don't have an LUMC standard yet.
+  publisher_id: https://ror.org/05xvt9f17
+  publisher_name: Leiden University Medical Center
+  creator_path: PATH
+
 ```
 
 Once the configuration file is set, you can run the pipeline by running the src/BEAT/main.py file. (preferably inside it's folder)
