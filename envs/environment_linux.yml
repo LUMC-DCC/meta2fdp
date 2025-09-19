@@ -1,4 +1,4 @@
-name: PATH
+name: samplenavigator2fdp
 channels:
   - conda-forge
 dependencies:
