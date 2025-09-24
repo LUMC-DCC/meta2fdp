@@ -1,0 +1,17 @@
+mode: 
+  replace: False
+  publish: True
+
+keyring:
+  fdp_service: credential_name
+  username: username
+
+FDP:
+  URL: URL  # should not end with 
+  PURL: PURL  # should end with /
+  catalog_purl: catalog_purl
+  
+file_paths: # settings for running the main inside src:
+  catalog_input_file: catalog_input_file
+  datasets_input_file: datasets_input_file
+
