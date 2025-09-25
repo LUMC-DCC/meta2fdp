@@ -28,11 +28,12 @@ class FDPClient:
     # this is the URL of the parent resource
     PURL = "https://example-fdp.nl/catalog/ac5d6134-6b7b-4989-80dd-5b1714023e3d" 
 
-    def __init__(self, fdp_url, username, password, persistent_url):
+    def __init__(self, fdp_url, username, password, persistent_url, verbose=True):
         self.URL = fdp_url # this is the main URL of the FDP server
         self.FDP_ADMIN_USERNAME = username
         self.FDP_ADMIN_PASSWORD = password
         self.PURL = persistent_url # this is the URL of the parent resource
+        self.verbose = verbose
 
     def check_url(self, url):
         """
@@ -124,15 +125,18 @@ class FDPClient:
             data = data.decode("utf-8")
         # upload resource description
         response = requests.request("POST", url, data=data.encode('utf-8'), headers=headers)
-        print(response.status_code) #check server response
-        #print(response.headers)
-        print(response.text)
-        #print(response.content)
-        resource_url = response.headers["Location"] # get the FDP server URL of the new resource description
+        # TODO: make this a verbose mode
+        if self.verbose:
+            print(response.status_code) #check server response
+            print(response.headers)
+            print(response.text)
+            print(response.content)
+        # FIXME this already throws an error:
+        #resource_url = response.headers["Location"] # get the FDP server URL of the new resource description
         try:
             resource_url = response.headers["Location"]
-        except :
-            print("Error getting location url")
+        except KeyError:
+            raise FileNotFoundError("Error getting location url, if this is because of badly formed metadata this is the SHACL validation report:\n {}".format(response.text))
         #print(resource_url)
         # self.publish_metadata(resource_url.replace(self.FDP_P_URL, self.FDP_URL + "/")) # replace the FDP server URL with the persistent URL of the resource
 
@@ -160,9 +164,10 @@ class FDPClient:
         payload = json.dumps(data)
         response = requests.request("PUT", state_url, data=payload, headers=headers)
         # check server response (manual)
-        # print(response.status_code)
-        # print(response.headers)
-        # print(response.text)
+        if self.verbose:
+            print(response.status_code)
+            print(response.headers)
+            print(response.text)
 
     def update_metadata(self, resource_url, body):
         """
@@ -181,7 +186,8 @@ class FDPClient:
             'Referer': resource_url + "/edit"
         }
         response = requests.request("PUT", resource_url, data=body.encode("utf-8"), headers=headers)
-        #print(response)
+        if self.verbose:
+            print(response)
         return response
     
     def upload_data(self, data, resource_name="Catalog"):
