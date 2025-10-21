@@ -16,19 +16,11 @@ Note: Mamba is a recommendation, as it is compatible with conda you can use cond
 
 ### Create and activate `conda`/`mamba` environment
 
-Dependencies are specified in `environment.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
+Dependencies are specified in `environment_linux.yml` or `samplenavigator2fdp` in the envs folder. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
 
 ```{bash}
 mamba env create -f environment.yml
-mamba activate .conda
-```
-
-#### Install local `fairopal` Python package 
-
-Install local package in the activated environment in development mode using `pip` but without installing package dependencies. Any dependencies must be installed in the `conda` environment, i.e., specified in `envs/environment.yml`.
-
-```
-pip install --no-build-isolation --no-deps -e .
+mamba activate samplenavigator2fdp
 ```
 
 #### Install missing packages
@@ -50,48 +42,11 @@ When running the pipeline in WSL, keyring-pybridge is needed to run keyring with
 NOTE: This script adds two export commands to bashrc file, this file is run on startup of a terminal. This change is permanent until manually removed by the user.
 
 ### configuration file
-```
-# Which mode the pipeline should run, if we want to replace current metadata of an existing catalog we set replace to True and set a catalog_purl URL below.
-mode: 
-  replace: False
-  publish: True # If metadata should be published on the FDP.
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
-
-keyring: 
-  fdp_service: test-FDP
-  username: k.m.p.cremers@lumc.nl
-
-FDP:
-  URL: https://fdp.example.org
-  PURL: https://fdp.example.org/  #notice the / added to the URL.
-  catalog_purl: https://fdp.example.org/catalog/8c393f31-7e86-44dc-94f0-61169f6b42b5
-  
-file_paths: # settings for running the main inside src:
-  person_directory: n  #used in old LLS implementation
-  mapping_directory: n
-  catalog_shacl: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\schema\shacl\v2\Catalog.ttl
-  dataset_shacl: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\schema\shacl\v2\Dataset.ttl
-  catalog_input_file: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\data\BEAT\Health-RI Core Metadata model v2 filled BEAT.xlsx
-  datasets_input_file: C:\Users\kmpcremers\Git projects\samplenavigator2fdp\data\BEAT\Health-RI Core Metadata model v2 filled BEAT.xlsx
-
-default_values_metadata:  # not used (yet) in implementations beyond LLS
-  namespace: https://fdp.example.org/
-  theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
-  license: http://example.org/niet-open  # we don't have an LUMC standard yet.
-  publisher_id: https://ror.org/05xvt9f17
-  publisher_name: Leiden University Medical Center
-  creator_path: PATH
-
-```
+Configuration files are found in the folder config. Each one is specific for one usecase. default_values.yaml is not used (yet)
 
 Once the configuration file is set, you can run the pipeline by running the src/BEAT/main.py file. (preferably inside it's folder)
+
 
 ## Documentation generation
 
@@ -107,6 +62,14 @@ To ensure Sphinx is able to parse the project from the local install of the Pyth
 ```
 export CONF_PATH="/PATHTOPROJECT/config/FDP/configuration.yaml"
 
+```
+
+## Install local `fairopal` Python package 
+
+Install local package in the activated environment in development mode using `pip` but without installing package dependencies. Any dependencies must be installed in the `conda` environment, i.e., specified in `envs/environment.yml`.
+
+```
+pip install --no-build-isolation --no-deps -e .
 ```
 
 ## new documentation
