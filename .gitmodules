@@ -1,0 +1,3 @@
+[submodule "tests/test_integration/compose"]
+	path = tests/test_integration/compose
+	url = https://github.com/FAIRDataTeam/compose.git
