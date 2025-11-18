@@ -1,0 +1,16 @@
+mode: 
+  replace: False
+  publish: True
+
+FDP:
+  URL: https://localhost
+  PURL: https://localhost/
+  catalog_purl: NA
+  username: albert.einstein@example.com
+  password: password
+
+  
+file_paths: # settings for running the main inside src:
+  catalog_input_file: tests\test_pass\Health-RI_LUMC_catalogue.csv
+  datasets_input_file: tests\test_pass\Health-RI_LUMC_datasets.csv
+

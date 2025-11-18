@@ -1,0 +1,21 @@
+mode: 
+  replace: False
+  publish: True
+
+SQL:
+  server_name: server_name
+  database_name: database_name
+  username: username
+  keyring_service: keyring_service
+  catalog_id: catalog_id
+  dataset_id: dataset_id
+
+keyring:
+  fdp_service: credential_name
+  username: username
+
+FDP:
+  URL: URL
+  PURL: PURL  # should end with /
+  catalog_purl: catalog_purl
+  
