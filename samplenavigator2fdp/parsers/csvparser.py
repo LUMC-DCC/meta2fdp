@@ -3,15 +3,13 @@ Adapter class from csv to FDP
 """
 from rdflib import URIRef, BNode, DCAT, DCTERMS, Graph
 import pandas as pd
-from converter import Converter
+from samplenavigator2fdp.parsers.converter import Converter
+from samplenavigator2fdp.fdp.FDPClient import FDPClient
 import keyring
 
 
 from pathlib import Path
-import sys
-path_root = Path(__file__).parents[1]
-sys.path.append(str(path_root))
-from fdp.FDPClient import FDPClient
+
 from graphutils import subject_replace, get_dataset_nodes
 
 import yaml
