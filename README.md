@@ -121,5 +121,22 @@ sphinx-build -M html source build
 ## Usage
 For usage of parsers check __main__ functions on the bottom of the file.
 
+## testing
+Environment setup for test-FDP docker compose:
+BASH:
+```
+export FDP_CLIENT_VERSION=1.16.3
+export FDP_VERSION=1.16.2
+```
+
+Windows Powershell:
+```
+$env:FDP_CLIENT_VERSION = '1.16.3'
+$env:FDP_VERSION = '1.16.2'
+```
+
+SHACL files that are used for integration testing are modified so all " symbols are escaped. This is because the original SHACL files are not recognized as a full string when put in JSON
+
+
 ## Roadmap
 TODO
