@@ -39,18 +39,18 @@ class CSVParser(Converter):
         """
         cat_table = pd.read_csv(catalog_file_path, sep=";",header=0)
         for index, catalog in cat_table.iterrows():
-            self.sempyro_catalog(catalog, self.graph, URL + "/new")
-            subject_replace(PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)
-            catalog_purl = self.client.upload_resource(self.graph, URL, resource_type=DCAT.Catalog)
+            self.sempyro_catalog(catalog, self.graph, self.client.URL + "/new")
+            subject_replace(self.client.PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)
+            catalog_purl = self.client.upload_resource(self.graph, self.client.URL, resource_type=DCAT.Catalog)
             if publish:
                     self.client.publish_metadata(catalog_purl)
             dat_table = pd.read_csv(datasets_file_path, sep=";",header=0) # get data
             for index, dataset in dat_table.iterrows():
-                self.sempyro_dataset(dataset, self.graph, PURL) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
+                self.sempyro_dataset(dataset, self.graph, self.client.PURL) # TODO ADD AGENT IDENTIFIER AS BLANK NODE ID
             dataset_list = get_dataset_nodes(self.graph)
             for node_id in dataset_list:
                 dataset_graph = self.graph.cbd(node_id[0])
-                subject_replace(PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)
+                subject_replace(self.client.PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)
                 dataset_graph.remove((BNode(node_id[0]), None, None))
                 self.client.link_resource(dataset_graph, catalog_purl, DCAT.Dataset)
                 dataset_purl = self.client.upload_resource(dataset_graph, catalog_purl, resource_type=DCAT.Dataset, resource_name="Dataset")
@@ -109,7 +109,7 @@ class CSVParser(Converter):
             else:  # upload new dataset:
                 print("new dataset {} found, adding to catalog".format(dataset_id))
                 dataset_graph = self.graph.cbd(dataset_id)
-                subject_replace(PURL + "new", dataset_id, DCAT.Dataset, dataset_graph)
+                subject_replace(self.client.PURL + "new", dataset_id, DCAT.Dataset, dataset_graph)
                 dataset_graph.remove((BNode(dataset_id), None, None))
                 self.client.link_resource(dataset_graph, targeturl, DCAT.Dataset)
                 dataset_purl = self.client.upload_resource(dataset_graph, targeturl, resource_type=DCAT.Dataset, resource_name="Dataset")

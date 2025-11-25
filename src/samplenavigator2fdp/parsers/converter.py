@@ -204,7 +204,7 @@ class Converter(metaclass=ABCMeta):
         mbox="mailto:" + cat_table.loc["publisher_email"]
     ),
     dataset=[])
-        graph.parse(data=catalog.to_graph(url).serialize())
+        graph.parse(data=catalog.to_graph(URIRef(url)).serialize())
         # print("debug")
         return url
     
