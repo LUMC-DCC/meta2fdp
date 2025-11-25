@@ -21,4 +21,4 @@ build-backend = "setuptools.build_meta"
 package-dir = {"" = "samplenavigator2fdp"}
 
 [tool.setuptools.packages.find]
-where = ["samplenavigator2fdp"]
+where = ["src"]
