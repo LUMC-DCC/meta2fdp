@@ -225,6 +225,7 @@ class FDPClient:
         :return: linked resource graph Turtle serialization
         :rtype: String
         """
+        print(graph.serialize())
         res = graph.query("SELECT ?s WHERE {?s ?p <" +  str(resource_type) +  "> . } ") #TODO make this work for multiple resource definitions.
         x = 0
         for s in res:
@@ -358,7 +359,7 @@ class FDPClient:
 
         new_id = self.get_resource_id(dcat_type, new_graph) 
         FDP_id = self.get_resource_id(dcat_type, FDP_graph)
-        if new_id != FDP_id:
+        if new_id != FDP_id: #HACK IF THE RESOURCE HAS NO DCTERMS:IDENTIFIER IT WILL AUTOMATICALLY MATCH
             raise IndexError("resource id {} does not match with current update!".format(url))
         else:
             #assume that object is fdp/new URL

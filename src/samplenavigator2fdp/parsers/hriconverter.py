@@ -158,6 +158,7 @@ class testconverter(Converter):
 
 
     def sempyro_dataset(self, row: pd.Series, graph:Graph, URI):
+        #rename function to make clear its a factory
         dataset = HRIDataset(
         contact_point=HRIVCard(
             hasEmail=URIRef("mailto:" + row.loc["contactPoint_email"]),
@@ -193,5 +194,6 @@ class testconverter(Converter):
         number_of_records=LiteralField(value=str(row.loc["numberOfRecords"]), datatype=XSD.nonNegativeInteger),
         number_of_unique_individuals=LiteralField(value=str(row.loc["numberOfUniqueIndividuals"]), datatype=XSD.nonNegativeInteger)
         )
+        # split to seperate function:
         graph.parse(data=dataset.to_graph(URI + str(row.loc["identifier"])).serialize())
     
