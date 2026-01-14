@@ -56,7 +56,7 @@ class FDPClient:
         """
         This function generates an bearer-token:
         https://swagger.io/docs/specification/authentication/bearer-authentication/
-        This is a token that can be used to authenticate your PUT and POST requests to the FDP server.
+        This is a token that can be used to authenticate your requests to the FDP server.
         This function returns a string
 
         :return: FDP API token
@@ -191,6 +191,7 @@ class FDPClient:
         return response
     
     def upload_data(self, data, resource_name="Catalog"):
+        #HACK
         """
         Use the FDPClient to upload metadata.
 
@@ -210,6 +211,7 @@ class FDPClient:
 
 
     def link_resource(self, graph, purl, resource_type):
+        #TODO change purl to better variable name
         """
         This function reads a graph, finds the
         target resource and links it to the given
@@ -305,14 +307,14 @@ class FDPClient:
             """
     PREFIX dcterms: <http://purl.org/dc/terms/>
 
-    SELECT ?s WHERE {
-        ?o dcterms:identifier ?s ;
+    SELECT ?o WHERE {
+        ?s dcterms:identifier ?o ;
             a <""" + str(dcat_type) + """> .
     }
     """
         )
         if len(qres.bindings) == 1:
-            return qres.bindings.pop()['s']
+            return qres.bindings.pop()['o']
         elif len(qres.bindings) == 0:
             return qres #TODO make unified return type
         else:
@@ -343,7 +345,7 @@ class FDPClient:
         as there should only be one resource with the type
         in the graph.
 
-        :param url: the url of the FDP that should be able to handle requests
+        :param url: the url of the FDP resource that should be able to handle requests
         :type url: str
         :param dcat_type: RDFLib DCAT resource type URIRef
         :type dcat_type: RDFLib DCAT resource type URIRef
@@ -378,7 +380,7 @@ class FDPClient:
 
     def get_dataset_id_purls(self, graph: Graph) -> dict:  #FIXME update based on content in replace_datasets in csvparser
         """
-        Get all datasets for a given catalog
+        Get all dataset URL's and dcterm:identifiers for a given catalog
         first get the dataset purls
         then do GET request to see content of datasets
         extract the identifier from datasets
@@ -409,6 +411,7 @@ class FDPClient:
         return datasets
     
     def update_catalog(self, catalog_purl, graph):
+        #TODO remove
         """
         Update a given catalog and get the child datasets
         of the given catalog for further update.
@@ -422,6 +425,7 @@ class FDPClient:
         return catalog_graph
 
     def get_dataset_nodes(self, graph:Graph) -> list:
+        #TODO make generic
         """
         Obtain blank node id's inside the graph
 
