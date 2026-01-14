@@ -19,6 +19,7 @@ class Parser(metaclass=ABCMeta):
     def __init__(self) -> None:
         pass
 
+    @abstractmethod
     def get_metadata(self, path: str) -> DataFrame:
         """A function that obtains the metadata of a resource.
         This could be a database query or a file that is read.
@@ -29,8 +30,9 @@ class Parser(metaclass=ABCMeta):
         :return: Output should be a table where every row is an individual resource
         :rtype: DataFrame
         """
-        pass 
+        pass
 
+    @abstractmethod
     def parse_catalog(self, metadata: Series) -> Graph:
         """A function that extracts catalog metadata from the Series and
         uses these values to make a RFDLib Graph representation of
@@ -112,29 +114,3 @@ class Parser(metaclass=ABCMeta):
         :rtype: Graph
         """
         pass
-
-    
-
-
-    # This is technically a new class like RFDClient
-    def upload_catalog(self, catalog_rdf:Graph) -> str:
-        """A function that uploads a catalog resource
-        graph representation to the designated FDP.
-        This should contain all mandatory properties defined
-        in the FDP SHACL for catalogs.
-        (use FDPClient create_metadata function)
-
-        :param catalog_rdf: A graph representation of a catalog resource with subject:
-        <FDPURL>/new that complies to the SHACL on the FDP
-        :type catalog_rdf: Graph
-        :return: The location of the newly uploaded catalog
-        :rtype: str
-        """
-        pass
-
-    def publish_catalog(self, url:str):
-        """A function that sets 
-
-        :param url: _description_
-        :type url: str
-        """
