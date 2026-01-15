@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 from rdflib import Graph, URIRef
-from typing import Iterator
 
 class Client(metaclass=ABCMeta):
 
@@ -8,13 +7,14 @@ class Client(metaclass=ABCMeta):
         self.URL = None
         self.token = None #Only store token 
     
+    @abstractmethod
     def connection_status(self) -> int:
         """Basic function to check if connection to a FDP is possible
 
         :return: server response status code
         :rtype: int
         """
-
+    @abstractmethod
     def get_api_token(self) -> str:
         """
         This function generates an bearer-token:
@@ -25,6 +25,7 @@ class Client(metaclass=ABCMeta):
         :rtype: String
         """
 
+    @abstractmethod
     def get_resource(self, url: str) -> str:
         """Get the metadata of a resource from the content of a location
         on the FDP.
@@ -36,6 +37,7 @@ class Client(metaclass=ABCMeta):
         """
         # decision: always output str or Graph? should both options have a function?
     
+    @abstractmethod
     def post_resource(self, resource_ttl: str, resource_type: str) -> str:
         """Post a new resource description of a specific type to FDP.
         
@@ -49,7 +51,7 @@ class Client(metaclass=ABCMeta):
         :rtype: str
         """
     
-
+    @abstractmethod
     def put_resource(self, resource_ttl: Graph, resource_url: URIRef, resource_type: str):
         """Put completely new resource description of a specific type to an existing
         resource location on the FDP.
@@ -64,23 +66,7 @@ class Client(metaclass=ABCMeta):
         this is case sensitive and will be used in the requests in this way: <https://fdp.org/RESOURCE_TYPE>
         :type resource_type: str
         """
-    
 
-    def link_resource(self, graph: Graph, resource_subject: str, parent_purl: URIRef) -> Graph:
-        """Add the "resource_subject DCTERMS:isPartOf parent_purl"
-          relationship to the resource graph. This relationship is necessary for
-          any resource that is uploaded to the FDP.
-
-        :param graph: Graph containing resource description
-        :type graph: Graph
-        :param resource_subject: subject uri of resource
-        :type resource_subject: str
-        :param parent_purl: PURL/uri of parent resource
-        :type parent_purl: URIRef
-        :return: modified resource description
-        :rtype: Graph
-        """
-        # decision: graph interaction, should that be in parse or is it fine in client?
 
     def upload_resource(self, graph: Graph, resource_subject: str, parent_purl: URIRef, resource_type: str) -> str:
         """Combines link_resource and post_resource to upload a complete resource
@@ -98,43 +84,7 @@ class Client(metaclass=ABCMeta):
         :return: Location of the new resource on the FDP ie URL
         :rtype: str
         """
-    
-    def get_resource_children(self, graph: Graph) -> Iterator:
-        # graph interaction
-        """
-        Obtain child nodes of FDP resource.
-        
-        :param graph: A graph to query
-        :type graph: RDFLib Graph
-        :return: query result
-        :rtype: QueryResult Object
-        """
 
-    def get_resource_id(self, graph: Graph, resource_type: URIRef) -> Iterator:
-        # graph interaction
-        """Obtain all dcterms:identifier objects associated to the
-         resource type in the graph.
-
-        :param graph: Graph representation of a resource description
-        :type graph: Graph
-        :param resource_type: dcat or alternative namespace class that
-          the target resource is defined as
-        :type resource_type: URIRef
-        :yield: query results
-        :rtype: Iterator
-        """
-    
-    def remove_subject(self, graph: Graph, subject_uri: URIRef) -> None:
-        # Graph interaction necessary to update content of a fdp resource
-        # based on remove_blank_node in FDPClient
-        """Remove all associated triples to a subject within
-        the given graph.
-
-        :param graph: _description_
-        :type graph: Graph
-        :param subject_uri: _description_
-        :type subject_uri: URIRef
-        """
     
     def update_resource_graph(self, new_graph: Graph, resource_url: URIRef, resource_type: URIRef):
         # graph interaction and fdp interaction
@@ -156,21 +106,15 @@ class Client(metaclass=ABCMeta):
         :rtype: RDFLib Graph
         """
     
-    def get_dict_of_dataset_ids(self, catalog_graph: Graph) -> dict:
-        # graph interaction and fdp interaction
-        """Get all dataset URL's and dcterm:identifiers for a given catalog
 
-        :param catalog_graph: a graph containing a FDP catalog resource
-        :type catalog_graph: Graph
+    def get_dict_of_child_ids(self, resource_graph: Graph) -> dict:
+        # graph interaction and fdp interaction
+        """Get all child URL's and dcterm:identifiers for a given catalog.
+        Relies on get_blank_nodes in GraphInteractor
+
+        :param resource_graph: a graph containing a FDP catalog resource
+        :type resource_graph: Graph
         :return: dictionary with key=dataset identifier: value=purl
         :rtype: dict
         """
     
-    def get_blank_nodes(self, graph: Graph) -> list:
-        """Obtain blank node id's inside the graph
-
-        :param graph: Graph representation of resource metadata
-        :type graph: Graph
-        :return: A list of URIRef's that are a blank node in the graph
-        :rtype: list
-        """

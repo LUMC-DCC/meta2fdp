@@ -18,6 +18,7 @@ def subject_replace(PURL, node_id, dcat_type, graph) -> None:
     :param graph: graph to replace the main object from
     :type graph: RDFLib Graph
     """
+    # this query should be able to work only with the node_id variable as a filter
     firstpart = """
     PREFIX dcat: <http://www.w3.org/ns/dcat#>
     PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -28,7 +29,7 @@ def subject_replace(PURL, node_id, dcat_type, graph) -> None:
     ?newResource ?p ?property .
     }
     WHERE {
-    ?resource a <"""
+    ?resource a <""" 
     middle = """> ;
                 ?p ?property .
     BIND(<"""
@@ -60,18 +61,3 @@ def merge_desc(dataset, graph):
         graph.remove((s,p,o))
     graph.add((dataset, DCTERMS.description, Literal(descriptions, datatype=XSD.string))) #HACK Health-RI has currently forced descriptions to be xsd string value type
     
-def get_dataset_nodes(graph: Graph) -> list:
-    """
-    Obtain blank node id's inside the graph
-
-    :param graph: A graph
-    :type graph: RDFLib Graph
-    :return: list of blank node URIs with dcat:Dataset type found in the graph
-    :rtype: list
-    """
-    query = """PREFIX dcat: <http://www.w3.org/ns/dcat#> 
-    SELECT ?s WHERE {
-    ?s a dcat:Dataset
-    }"""
-    res = graph.query(query)
-    return [id for id in res]
