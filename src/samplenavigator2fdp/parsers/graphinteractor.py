@@ -7,7 +7,7 @@ class GraphInteractor(metaclass=ABCMeta):
     is that the original graph is maintained while a copy of the graph is edited
     and used for a different goal.
     """
-    #decision: we can make this a seperate class that manipulates a Graph object
+    #decision: we can make this a seperate class that manipulates a Graph object explicitly
     # or we can extend the Graph object with the functionality of this type of class
     # see the Converter class an how it is making a HRI specific class in the init
 
@@ -63,7 +63,10 @@ class GraphInteractor(metaclass=ABCMeta):
 
     def merge_strings(self, graph: Graph, subject_uri: URIRef, predicate: URIRef) -> Graph:
         """Merge multiple strings associated to the same subject predicate pair.
-        #TODO this may be depricated with the Health-RI v2.0.2 schema.
+        #HACK implemented for the LLS usecase due to the lack of catalog 
+        # resources in the Health-RI health data catalog. As context of a dataset 
+        # that was described in the description of the catalog would be missing 
+        # if only dataset properties were shown in the Health-RI catalog.
 
         :param graph: Graph to merge strings in
         :type graph: Graph
