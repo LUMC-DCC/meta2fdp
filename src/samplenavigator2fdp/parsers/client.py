@@ -52,6 +52,14 @@ class Client(metaclass=ABCMeta):
         """
     
     @abstractmethod
+    def publish_resource(self, resource_url: URIRef):
+        """Set the status of a resource metadata description to public
+
+        :param resource_url: URL to the target resource
+        :type resource_url: URIRef
+        """
+    
+    @abstractmethod
     def put_resource(self, resource_ttl: Graph, resource_url: URIRef, resource_type: str):
         """Put completely new resource description of a specific type to an existing
         resource location on the FDP.
