@@ -1,7 +1,7 @@
 """Abstract class of a converter module. A class that dictates input and
 output of any converter class. 
 """
-from rdflib import Graph, Literal, URIRef, DCTERMS, XSD, Namespace
+from rdflib import Graph, URIRef, XSD
 from pandas import Series
 from abc import ABCMeta
 from typing import  Union
