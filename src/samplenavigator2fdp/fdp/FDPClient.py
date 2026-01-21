@@ -5,12 +5,8 @@
 import requests
 import json
 from rdflib import Graph, RDF, URIRef, FOAF, DCAT, DCTERMS
+from samplenavigator2fdp.graphutils.graphutils import subject_replace
 
-from pathlib import Path
-import sys
-path_root = Path(__file__).parents[1]
-sys.path.append(str(path_root))
-from graphutils import *
 
 
 class FDPClient:
