@@ -2,7 +2,8 @@ import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
 from rdflib.namespace import Namespace
 from sempyro.utils.validator_functions import force_literal_field
-from converter import Converter
+from samplenavigator2fdp.converters.abstractmodel import AbstractModel
+
 
 from pydantic import AnyHttpUrl, Field, field_validator
 import dateutil.parser as parser
@@ -27,7 +28,7 @@ from sempyro.hri_dcat import (
 #         })
 
 
-class testconverter(Converter):
+class testconverter(AbstractModel):
     
     VCARD = Namespace("http://www.w3.org/2006/vcard/ns#")
 
