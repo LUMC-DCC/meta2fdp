@@ -1,8 +1,8 @@
 from abc import ABCMeta
 from rdflib import Graph, URIRef
 
-class AbstractExtendedGraph(Graph, metaclass=ABCMeta):
-    """An abstract class that edits the content of a rdflib Graph. Functions should
+class GraphInteractor(metaclass=ABCMeta):
+    """A class that edits the content of a rdflib Graph. Functions should
     always output the new graph, as there are cases where the desired outcome
     is that the original graph is maintained while a copy of the graph is edited
     and used for a different goal.
@@ -12,7 +12,7 @@ class AbstractExtendedGraph(Graph, metaclass=ABCMeta):
     # see the Converter class an how it is making a HRI specific class in the init
 
     def __init__(self) -> None:
-        self.graph
+        pass
 
 
     def link_resource(self, graph: Graph, resource_subject: str, parent_purl: URIRef) -> Graph:
