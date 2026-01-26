@@ -23,11 +23,11 @@ from sempyro.hri_dcat import (
 # minimum information on mappings needed: fieldname/property, variable path, language
 # mappping files are per resource
 
-class Converter(metaclass=ABCMeta):
+class AbstractModel(metaclass=ABCMeta):
 
     def __init__(self) -> None:
-        self.theme = None
-        self.applicable_legislation = None
+        # example properties for default values:
+        self.default_values = None
     
     def set_default_values(self, config: dict) -> None:
         """Set default values for resource properties.
@@ -52,7 +52,7 @@ class Converter(metaclass=ABCMeta):
         :rtype: Graph
         """
 
-    def metadata_to_agent(self, metadata: Series, agent_prefix: str) -> HRIAgent:
+    def instantiate_agent(self, metadata: Series, agent_prefix: str) -> HRIAgent:
         """A function that uses the Series containing metadata and instantiates a
         SeMPyRO HRIAgent class. This could be information about a creator or publisher
          in a catalog for example.
@@ -80,7 +80,7 @@ class Converter(metaclass=ABCMeta):
         publisher_type=None
     )
 
-    def metadata_to_HRIVcard(self, metadata: Series) -> HRIVCard:
+    def instantiate_HRIVcard(self, metadata: Series, prefix="contactPoint") -> HRIVCard:
         """A function that uses the Series containing metadata and instantiates a
         SeMPyRO HRIAgent class. HRIVCard's are used to define what values are
         associated to contactpoints in both Catalogs and Datasets. 
@@ -95,14 +95,14 @@ class Converter(metaclass=ABCMeta):
         :rtype: HRIVCard
         """
         vcard=HRIVCard(
-        hasEmail="mailto:" + metadata.loc["contactPoint_email"],
-        formatted_name=metadata.loc["contactPoint_name"],
+        hasEmail="mailto:" + metadata.loc[prefix + "_email"],
+        formatted_name=metadata.loc[prefix +"_name"],
         hasUID=None,
         contact_page=None)
         return vcard
 
 
-    def instantiate_HRICatalog(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None], url: URIRef) -> HRICatalog:
+    def instantiate_HRICatalog(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None]) -> HRICatalog:
         """This a more generic sempyro catalog constructor that tries to build towards a more flexible
         generation of catalogs. The main point of doing this is to seperate different classes into their own functions.
         
