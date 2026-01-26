@@ -1,5 +1,8 @@
 """Excel parser for BEAT COVID and CoMoDuLate metadata. This class is a proof of concept of using a single excel file to describe metadata of a study represented as a catalog and its associated datasets on a FDP. It handles the seperation of individual classes into seperate sheets and the use of columns for creator attribution. This class was build during the transition period between v1 and v2 of the Health-Ri Schema, and is compatible with both.
 """
+from fdp.FDPClient import FDPClient
+from samplenavigator2fdp.parsers.abstractparser import Parser
+from samplenavigator2fdp.graphutils.graphutils import merge_desc, subject_replace
 import pandas as pd
 from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
 import keyring
@@ -8,18 +11,8 @@ from typing import Union
 import yaml
 from datetime import datetime
 
-from os import getenv
-from pathlib import Path
-import sys
-path_root = Path(__file__).parents[1]
-sys.path.append(str(path_root))
 
-from fdp.FDPClient import FDPClient
-from converter import Converter
-from graphutils import merge_desc, subject_replace
-
-
-class ExcelParser(Converter):
+class ExcelParser(Parser):
 
     def __init__(self, file_path, config, client = FDPClient, class_map=None, debug=False):
         super().__init__(class_map, debug)
