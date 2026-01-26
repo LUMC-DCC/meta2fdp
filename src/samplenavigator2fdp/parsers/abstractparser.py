@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from pandas import DataFrame
 
 
-class CSVParser(metaclass=ABCMeta):
+class Parser(metaclass=ABCMeta):
     """An abstract class that defines functions and behaviours desired
     from a parser module.
     """
