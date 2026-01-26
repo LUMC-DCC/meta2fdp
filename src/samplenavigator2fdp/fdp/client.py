@@ -3,10 +3,20 @@ from rdflib import Graph, URIRef
 
 class Client(metaclass=ABCMeta):
 
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
+        self.config = config
         self.URL = None
         self.token = None #Only store token 
     
+    @abstractmethod
+    def load_config(self, path:str) -> None:
+        """A function that sets all required variables
+        for a functioning client
+
+        :param path: Path to config file
+        :type path: str
+        """
+
     @abstractmethod
     def connection_status(self) -> int:
         """Basic function to check if connection to a FDP is possible
@@ -14,15 +24,20 @@ class Client(metaclass=ABCMeta):
         :return: server response status code
         :rtype: int
         """
+    
+
     @abstractmethod
-    def get_api_token(self) -> str:
-        """
-        This function generates an bearer-token:
+    def get_api_token(self, keyring_service: str, keyring_username: str) -> str:
+        """        This function generates an bearer-token:
         https://swagger.io/docs/specification/authentication/bearer-authentication/
         This is a token that can be used to authenticate your requests to the FDP server. The password should be aquired through a keyring service.
 
-        :return: FDP API token
-        :rtype: String
+        :param keyring_service: Service name in keyring system
+        :type keyring_service: str
+        :param keyring_password: Keyring username for service
+        :type keyring_password: str
+        :return: An API token
+        :rtype: str
         """
 
     @abstractmethod
