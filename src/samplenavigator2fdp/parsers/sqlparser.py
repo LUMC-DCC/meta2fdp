@@ -3,27 +3,15 @@
 update function not yet implemented yet.
 
 """
+from samplenavigator2fdp.parsers.abstractparser import Parser
 from rdflib import URIRef, BNode, DCAT, Namespace
 import yaml
 import pandas as pd
 import keyring
 from pymssql import connect
-from converter import Converter
-
-from os import getenv
-from pathlib import Path
-import sys
-path_root = Path(__file__).parents[1]
-sys.path.append(str(path_root))
 
 
-from fdp.FDPClient import FDPClient
-from graphutils import *  #TODO find a clear way to indicate functions come from the utils
-
-
-
-
-class SQLParser(Converter):
+class SQLParser(Parser):
 
     def __init__(self, config, client: FDPClient, class_map=None, debug=False):
         super().__init__(class_map, debug)

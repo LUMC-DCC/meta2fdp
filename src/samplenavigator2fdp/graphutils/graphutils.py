@@ -18,6 +18,7 @@ def subject_replace(PURL, node_id, dcat_type, graph) -> None:
     :param graph: graph to replace the main object from
     :type graph: RDFLib Graph
     """
+    # this query should be able to work only with the node_id variable as a filter
     firstpart = """
     PREFIX dcat: <http://www.w3.org/ns/dcat#>
     PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -28,7 +29,7 @@ def subject_replace(PURL, node_id, dcat_type, graph) -> None:
     ?newResource ?p ?property .
     }
     WHERE {
-    ?resource a <"""
+    ?resource a <""" 
     middle = """> ;
                 ?p ?property .
     BIND(<"""
