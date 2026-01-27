@@ -5,7 +5,8 @@ import json
 import subprocess
 import time
 
-FDP_BASE_URL = 'http://localhost/'
+FDP_BASE_URL = "http://localhost/"
+FDP_BASE_VERSION = "1.18.1"
 EMAIL = "albert.einstein@example.com"
 PASSWORD = "password"
 
@@ -89,8 +90,8 @@ def publish_schema(uuid, token, version, desc):
 def setup():
     # Step 1: Set environment variables
     #TODO make a config
-    os.environ["FDP_CLIENT_VERSION"] = "1.16.3"
-    os.environ["FDP_VERSION"] = "1.16.2"
+    os.environ["FDP_CLIENT_VERSION"] = FDP_BASE_VERSION
+    os.environ["FDP_VERSION"] = FDP_BASE_VERSION
 
     #Step 2: Run Docker Compose to start FDP ephemeral server
     compose_dir = Path("tests\\test_integration\\compose\\fdp\\ephemeral\\v1")  # Update this path
