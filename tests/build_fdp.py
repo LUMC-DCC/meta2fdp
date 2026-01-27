@@ -5,7 +5,8 @@ import json
 import subprocess
 import time
 
-FDP_BASE_URL = 'http://localhost/'
+FDP_BASE_URL = "http://localhost/"
+FDP_BASE_VERSION = "1.18.1"
 EMAIL = "albert.einstein@example.com"
 PASSWORD = "password"
 
@@ -89,8 +90,8 @@ def publish_schema(uuid, token, version, desc):
 def setup():
     # Step 1: Set environment variables
     #TODO make a config
-    os.environ["FDP_CLIENT_VERSION"] = "1.16.3"
-    os.environ["FDP_VERSION"] = "1.16.2"
+    os.environ["FDP_CLIENT_VERSION"] = FDP_BASE_VERSION
+    os.environ["FDP_VERSION"] = FDP_BASE_VERSION
 
     #Step 2: Run Docker Compose to start FDP ephemeral server
     compose_dir = Path("tests\\test_integration\\compose\\fdp\\ephemeral\\v1")  # Update this path
@@ -105,58 +106,55 @@ def setup():
 
     resource_schemas = extract_schema_uuids(schemas, "http://www.w3.org/ns/dcat#Resource")
 
-    print("Schemas linked to dcat:Resource:")
-    for uuid, context in resource_schemas:
-        print(f" - UUID: {uuid}, Resource Type: {context}")
+    # print("Schemas linked to dcat:Resource:")
+    uuid, context = resource_schemas[0]
 
     # Update the first matching schema
     if resource_schemas:
         schema_uuid = resource_schemas[0][0]
         
         status, message = update_schema(schema_uuid, token, "tests/test_files/SHACL/Resource.ttl", context)
-        print(f"Update status: {status}")
-        print(f"Response: {message}")
+        # print(f"Update status: {status}")
+        # print(f"Response: {message}")
         time.sleep(2)
         publish_schema(schema_uuid, token, "2.0.0", "test_upload")
 
     else:
-        print("No matching schemas found for dcat:Resource.")
+        raise Exception("No matching schemas found for dcat:Resource.")
 
 
     # Show different parsing methods
     catalog_schemas = extract_schema_uuids(schemas, "http://www.w3.org/ns/dcat#Catalog")
-    print("Schemas linked to dcat:Catalog:")
-    for uuid, context in catalog_schemas:
-        print(f" - UUID: {uuid}, Resource Type: {context}")
+    # print("Schemas linked to dcat:Catalog:")
+    uuid, context = catalog_schemas.next()
 
     # Update the first matching schema
     if catalog_schemas:
         schema_uuid = catalog_schemas[0][0]
         
         status, message = update_schema(schema_uuid, token, "tests/test_files/SHACL/Catalog.ttl", context)
-        print(f"Update status: {status}")
-        print(f"Response: {message}")
+        # print(f"Update status: {status}")
+        # print(f"Response: {message}")
         time.sleep(2)
         publish_schema(schema_uuid, token, "2.0.0", "test_upload")
 
     else:
-        print("No matching schemas found for dcat:Catalog.")
+        raise Exception("No matching schemas found for dcat:Catalog.")
 
     dataset_schemas = extract_schema_uuids(schemas, target_type="http://www.w3.org/ns/dcat#Dataset")
     print("Schemas linked to dcat:Dataset:")
-    for uuid, context in catalog_schemas:
-        print(f" - UUID: {uuid}, Resource Type: {context}")
+    uuid, context = catalog_schemas.next()
 
     # Update the first matching schema
     if dataset_schemas:
         schema_uuid = dataset_schemas[0][0]
         status, message = update_schema(schema_uuid, token, "tests/test_files/SHACL/Dataset.ttl", context)
-        print(f"Update status: {status}")
-        print(f"Response: {message}")
+        # print(f"Update status: {status}")
+        # print(f"Response: {message}")
         time.sleep(2)
         publish_schema(schema_uuid, token, "2.0.0", "test_upload")
 
     else:
-        print("No matching schemas found for dcat:Dataset.")
+        raise Exception("No matching schemas found for dcat:Dataset.")
     
     #subprocess.run(["docker", "compose", "down"], cwd=compose_dir)

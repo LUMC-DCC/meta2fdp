@@ -7,6 +7,32 @@ from abc import override
 from pathlib import Path
 import yaml
 
+test = """@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix cat: <http://www.w3.org/ns/dcat#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix og: <http://ogp.me/ns#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+
+<https://fdp.example.org/agent/publisher> dct:identifier "https://ror.org/05xvt9f17" ;
+	rdf:type foaf:Agent ;
+	foaf:homepage <https://www.lumc.nl> ;
+	foaf:mbox <mailto:biobankorganisatie@lumc.nl> ;
+	foaf:name "Leiden University Medical Center"@en, "Leids Universitair Medisch Centrum"@nl .
+
+<https://fdp.example.org/contact/main> rdf:type vcard:Kind ;
+	vcard:fn "Biobankorganisatie LUMC" ;
+	vcard:hasEmail <mailto:biobankorganisatie@lumc.nl> .
+
+<https://fdp.example.org/new> dct:description "A general description of the LUMC biobanks in English"@en, "Een algemene omschrijving van de LUMC biobanken in het Nederlands"@nl ;
+	dct:publisher <https://fdp.example.org/agent/publisher> ;
+	dct:title "LUMC Biobanks"@en, "LUMC Biobanken"@nl ;
+	rdf:type dcat:Catalog ;
+	dcat:contactPoint <https://fdp.example.org/contact/main> ;
+	dcat:dataset <https://fdp.example.org/dataset/dataset> .
+"""
+
 
 class CSVParser(Parser):
 
