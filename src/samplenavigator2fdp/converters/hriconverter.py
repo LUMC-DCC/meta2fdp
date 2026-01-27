@@ -1,11 +1,12 @@
-"""Originally a complete Abstract class of a converter module. A class that dictates input and
-output of any converter class. 
-But it has slowly grown into a parent class for converting metadata to RDF through different functions.
-"""
-from rdflib import Graph, Literal, URIRef, DCTERMS, XSD, Namespace
-from pandas import Series
-from abc import ABCMeta, abstractmethod
-from typing import  Union
+import pandas as pd
+from rdflib import Graph, BNode, RDF, Literal, URIRef, FOAF, DCAT, DCTERMS, XSD
+from rdflib.namespace import Namespace
+from sempyro.utils.validator_functions import force_literal_field
+from samplenavigator2fdp.converters.abstractmodel import AbstractModel
+
+
+from pydantic import AnyHttpUrl, Field, field_validator
+import dateutil.parser as parser
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog, 
@@ -18,14 +19,22 @@ from sempyro.hri_dcat import (
 )
 
 
+# class FDPCatalog(HRICatalog):
+#     is_part_of: [AnyHttpUrl] = Field(
+#         description="Link to parent object", 
+#         json_schema_extra={
+#             "rdf_term": DCTERMS.isPartOf, 
+#             "rdf_type": "uri"
+#         })
 
-# TODO: factory function that generates a converter class based on available mappings:
-# minimum information on mappings needed: fieldname/property, variable path, language
-# mappping files are per resource
 
-class Converter(metaclass=ABCMeta):
+class testconverter(AbstractModel):
+    
+    VCARD = Namespace("http://www.w3.org/2006/vcard/ns#")
 
-    def __init__(self,  class_map=None, debug=False):
+    def __init__(self, file_path,  class_map=None, debug=False):
+        self.graph, self.prefix_map = self._prep_graph()
+        self.file_path = file_path
         self.node_log = {}
         if class_map:
             self.class_map = class_map
@@ -36,8 +45,6 @@ class Converter(metaclass=ABCMeta):
                                'Catalog_service': "dcat:DataService"}
         self.dataset_ids = []
         self.debug = debug
-        self.VCARD = Namespace("http://www.w3.org/2006/vcard/ns#")
-        self.graph, self.prefix_map = self._prep_graph()
 
     def _gen_prefix_map(self, namespaces):
         prefix_map = {}
@@ -124,66 +131,8 @@ class Converter(metaclass=ABCMeta):
             Warning("{value} has passed throug all rdf datatype checks!")
         return Literal(value)
     
-    def agent_rdf(self, metadata: Series) -> HRIAgent:
-        return HRIAgent(
-        name=[LiteralField(value=metadata.loc["publisher_name_en"], language="en"),
-              LiteralField(value=metadata.loc["publisher_name_nl"], language="nl")],
-        identifier=[metadata.loc["publisher_identifier"]],
-        homepage=URIRef(metadata.loc["publisher_url"]),
-        mbox="mailto:" + metadata.loc["publisher_email"],
-        spatial = None,
-        publisher_note=None,
-        publisher_type=None
-    )
 
-    def vcard_rdf(self, metadata: Series) -> HRIVCard:
-        vcard=HRIVCard(
-        hasEmail="mailto:" + metadata.loc["contactPoint_email"],
-        formatted_name=metadata.loc["contactPoint_name"]),
-        return vcard
-
-
-    def catalog_rdf(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None], url: URIRef) -> HRICatalog:
-        """This a more generic sempyro catalog constructor that tries to build towards a more flexible
-        generation of catalogs. The main point of doing this is to seperate different classes into their own functions.
-        
-
-        :param metadata: The metadata of a catalog
-        :type metadata: Series
-        :param creators: A catalog can have 0 or more creators, which are a described as agents
-        :type creators: Union[list[HRIAgent], None]
-        :param contact_point: A catalog has one contactpoint (for now) and is described with a Vcard
-        :type contact_point: HRIVCard
-        :param publisher: Publisher should be LUMC, see configuration for default values that could be used.
-        :type publisher: HRIAgent
-        :param service: Possible dataservice where distribution access is serviced.
-        :type service: Union[HRIDataService, None]
-        :param url: Subject url / internal URL to be used to represtent the catalog
-        :type url: URIRef
-        :return: Catalog class for reuse or manipulation
-        :rtype: HRICatalog
-        """
-        # TODO switch creators to attributions (creators are specifically creators of the catalog e.g. LUMC not the authors of a study)
-        catalog = HRICatalog(
-            title=[
-                LiteralField(value=metadata.loc["title_en"], language="en"),
-                LiteralField(value=metadata.loc["title_nl"], language="nl")
-            ],
-            description=[
-                LiteralField(value=metadata.loc["description_en"], language="en"),
-                LiteralField(value=metadata.loc["description_nl"], language="nl")
-            ],
-            creator=creators,
-            contact_point=contact_point,
-            publisher=publisher,
-            service=service,
-            dataset=[])
-        self.graph.parse(data=catalog.to_graph(url).serialize())  # put catalog into local graph
-        # print("debug")
-        return catalog
-
-    def sempyro_catalog(self, cat_table: Series, graph: Graph, url=None):
-        #Proof of concept function, needs to be reworked to be more flexible with input
+    def sempyro_catalog(self, cat_table: pd.DataFrame, graph: Graph, url=None):
         catalog = HRICatalog(
     title=[
         LiteralField(value=cat_table.loc["title_en"], language="en"),
@@ -204,11 +153,13 @@ class Converter(metaclass=ABCMeta):
         mbox="mailto:" + cat_table.loc["publisher_email"]
     ),
     dataset=[])
-        graph.parse(data=catalog.to_graph(URIRef(url)).serialize())
+        graph.parse(data=catalog.to_graph(url).serialize())
         # print("debug")
         return url
-    
-    def sempyro_dataset(self, row: Series, graph:Graph, URI):
+
+
+    def sempyro_dataset(self, row: pd.Series, graph:Graph, URI):
+        #rename function to make clear its a factory
         dataset = HRIDataset(
         contact_point=HRIVCard(
             hasEmail=URIRef("mailto:" + row.loc["contactPoint_email"]),
@@ -244,30 +195,6 @@ class Converter(metaclass=ABCMeta):
         number_of_records=LiteralField(value=str(row.loc["numberOfRecords"]), datatype=XSD.nonNegativeInteger),
         number_of_unique_individuals=LiteralField(value=str(row.loc["numberOfUniqueIndividuals"]), datatype=XSD.nonNegativeInteger)
         )
-        identifier= URI + str(row.loc["identifier"])
-        graph.parse(data=dataset.to_graph(identifier).serialize())
-        self.dataset_ids.append(identifier)
-        return identifier
-    
-
-    #@abstractmethod
-    #def dataset_rdf(self, metadata, graph: Graph) -> HRIDataset:
-    #    raise NotImplemented
-
-
-    #@abstractmethod
-    #def distribution_rdf(self, metadata, graph: Graph) -> HRIDistribution:
-    #    raise NotImplemented
-
-
-    #@abstractmethod
-    #def datasetseries_rdf(self, metadata, graph: Graph) -> HRIDatasetSeries:
-    #    raise NotImplemented
-
-
-    #@abstractmethod
-    #def dataservice_rdf(self, metadata, graph: Graph) -> HRIDataService:
-    #    raise NotImplemented
-
-
+        # split to seperate function:
+        graph.parse(data=dataset.to_graph(URI + str(row.loc["identifier"])).serialize())
     

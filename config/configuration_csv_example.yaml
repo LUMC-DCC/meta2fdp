@@ -14,4 +14,7 @@ FDP:
 file_paths: # settings for running the main inside src:
   catalog_input_file: catalog_input_file
   datasets_input_file: datasets_input_file
+  distribution_input_file: distribution_input_file
+  dataservice_input_file: dataservice_input_file
+  datasetseries_input_file: datasetseries_input_file
 
