@@ -12,5 +12,7 @@ FDP:
   
 file_paths: # settings for running the main inside src:
   catalog_input_file: tests\test_pass\Health-RI_LUMC_catalogue.csv
-  datasets_input_file: tests\test_pass\Health-RI_LUMC_datasets.csv
-
+  dataset_input_file: tests\test_pass\Health-RI_LUMC_datasets.csv
+  distribution_input_file: distribution_input_file
+  dataservice_input_file: dataservice_input_file
+  datasetseries_input_file: datasetseries_input_file
