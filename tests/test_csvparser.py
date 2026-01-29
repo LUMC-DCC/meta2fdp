@@ -1,42 +1,62 @@
+import unittest
+import yaml
+from samplenavigator2fdp.parsers.csvparser import CSVParser
 import sys
 import pathlib
-from unittest import TestCase
-import yaml
-from samplenavigator2fdp.parsers import csvparser
-from samplenavigator2fdp.fdp import FDPClient
-from tests import build_fdp
-import subprocess
+from pandas import DataFrame, read_csv
 
+config_path = pathlib.Path("tests/test_files/test_configs/configuration_csv.yaml")
 
-
-DATA_DIR = pathlib.Path(__file__)
-RESOURCES_PASS_DIR = DATA_DIR.joinpath("test_pass")
-
-class CSVParserTests(TestCase):
-
-    def setUp(self):
-        conf_path = "tests/test_files/test_configs/configuration_csv.yaml"
+def parse_config(conf_path):
         try:
             with open(conf_path, "r") as config_file:
-                self.config = yaml.safe_load(config_file)  # used to obtain right value types from the yaml like booleans
+                config = yaml.safe_load(config_file)  # used to obtain right value types from the yaml like booleans
+                return config
         except FileNotFoundError:
             print(f"Configuration file not found: {conf_path}")
             sys.exit(1)
         except yaml.YAMLError as e:
             print(f"Error parsing YAML configuration file: {e}")
             sys.exit(1) 
-        self.client = FDPClient.FDPClient(fdp_url=self.config["FDP"]["URL"], username=self.config["FDP"]["username"],password=self.config["FDP"]["password"], persistent_url=self.config["FDP"]["catalog_purl"],verbose=True)
-        build_fdp.setup()
+
+config = parse_config(config_path)
+
+class CSVParserTests(unittest.TestCase):
+
+    def __init__(self, methodName: str = "runTest") -> None:
+        super().__init__(methodName)
+        self.config = config
+        self.parser = CSVParser(self.config)
 
 
-    def tearDown(self):
-        subprocess.run(["docker", "compose", "down"], cwd=pathlib.Path("tests\\test_integration\\compose\\fdp\\ephemeral\\v1"))
-        pass
+    def testparse_catalog(self):
+        catalog = self.parser.parse_catalog()
+        self.assertEqual(type(catalog), DataFrame, "Catalog is not a DataFrame")
+        test_read = read_csv(self.config["file_paths"]["catalog_input_file"], sep=";",header=0)
+        #TODO might need to become a check if all mandatory property headers are there
+        self.assertTrue(
+            len(set(test_read.columns.to_list())-set(catalog.columns.to_list())) == 0,
+            "Not all reference properties in parsed catalog dataframe colnames!"
+        )
 
+    def testparse_dataset(self):
+        dataset = self.parser.parse_dataset()
+        self.assertEqual(type(dataset), DataFrame, "dataset is not a DataFrame")
+        test_read = read_csv(self.config["file_paths"]["dataset_input_file"], sep=";",header=0)
+        #TODO might need to become a check if all mandatory property headers are there
+        self.assertTrue(
+            len(set(test_read.columns.to_list())-set(dataset.columns.to_list())) == 0,
+            "Not all reference properties in parsed dataset dataframe colnames!"
+        )
 
-    def test_parse_cat_dat_pass(self):
-        parser = csvparser.CSVParser(config=self.config, client=self.client)
-        try:
-            parser.parse_cat_dat(self.config["file_paths"]["catalog_input_file"], self.config["file_paths"]["datasets_input_file"], publish=True)
-        except Exception:
-            self.fail("")
+    @unittest.skipIf(config["file_paths"]["distribution_input_file"] == "distribution_input_file", "no distribution file in test config yet, skipping distribution parsing test.")
+    def testparse_distribution(self):
+        self.parser.parse_distribution()
+
+    @unittest.skipIf(config["file_paths"]["dataservice_input_file"] == "dataservice_input_file", "no datasetseries file in test config yet, skipping datasetseries parsing test.")
+    def testparse_dataservice(self):
+        self.parser.parse_dataservice()
+    
+    @unittest.skipIf(config["file_paths"]["datasetseries_input_file"] == "datasetseries_input_file", "no datasetseries file in test config yet, skipping datasetseries parsing test.")
+    def testparse_datasetseries(self):
+        self.parser.parse_distribution()
