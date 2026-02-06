@@ -9,7 +9,7 @@ keyring:
 FDP:
   URL: URL  # should not end with 
   PURL: PURL  # should end with /
-  catalog_purl: catalog_purl
+  parent_resource_purl: parent_resource_purl
   
 file_paths: # settings for running the main inside src:
   catalog_input_file: catalog_input_file
