@@ -1,9 +1,7 @@
 import pandas as pd
-from rdflib import Graph, Literal, URIRef, DCTERMS, XSD
-from rdflib.namespace import Namespace
+from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
 from samplenavigator2fdp.converters.abstractmodel import AbstractModel
-from typing import Any
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog, 
@@ -46,7 +44,7 @@ class Hriv2Model(AbstractModel):
         """
         properties = []
         if colname in metadata.index:
-            nolang_literal = LiteralField(value=colname)
+            nolang_literal = LiteralField(value=metadata.loc[colname])
             properties.append(nolang_literal)
         else:
             for langtag in self.model_config["langtags"].split(","):
