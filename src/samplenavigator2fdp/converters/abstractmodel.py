@@ -25,7 +25,7 @@ from sempyro.hri_dcat import (
 
 class AbstractModel(metaclass=ABCMeta):
 
-    def __init__(self) -> None:
+    def __init__(self, default_values:dict) -> None:
         # example properties for default values:
         self.default_values = None
     
@@ -91,7 +91,9 @@ class AbstractModel(metaclass=ABCMeta):
 
         :param metadata: A Series containing metadata about a contact point
         :type metadata: Series
-        :return: _description_
+        :param prefix: the prefix of the column names associated to contactpoint, defaults to "contactPoint"
+        :type prefix: str, optional
+        :return: A HRIVcard pydantic class
         :rtype: HRIVCard
         """
         vcard=HRIVCard(
@@ -102,7 +104,7 @@ class AbstractModel(metaclass=ABCMeta):
         return vcard
 
 
-    def instantiate_HRICatalog(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent, service: Union[HRIDataService, None]) -> HRICatalog:
+    def instantiate_HRICatalog(self, metadata: Series, contact_point: HRIVCard, publisher: HRIAgent, creators: Union[list[HRIAgent], None]=None, service: Union[HRIDataService, None]=None) -> HRICatalog:
         """This a more generic sempyro catalog constructor that tries to build towards a more flexible
         generation of catalogs. The main point of doing this is to seperate different classes into their own functions.
         
@@ -117,8 +119,6 @@ class AbstractModel(metaclass=ABCMeta):
         :type publisher: HRIAgent
         :param service: Possible dataservice where distribution access is serviced.
         :type service: Union[HRIDataService, None]
-        :param url: Subject url / internal URL to be used to represtent the catalog
-        :type url: URIRef
         :return: Catalog class for reuse or manipulation
         :rtype: HRICatalog
         """
@@ -140,7 +140,7 @@ class AbstractModel(metaclass=ABCMeta):
         return catalog
 
     
-    def instantiate_dataset(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent):
+    def instantiate_HRIDataset(self, metadata: Series, creators: Union[list[HRIAgent], None], contact_point: HRIVCard, publisher: HRIAgent) -> HRIDataset:
         dataset = HRIDataset(
         contact_point=contact_point,
         creator=creators,

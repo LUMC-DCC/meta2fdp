@@ -1,6 +1,0 @@
-default_values_metadata:
-  namespace: namespace
-  theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
-  license: license
-  publisher_id: https://ror.org/xxxxxx
-  publisher_name: publisher_name

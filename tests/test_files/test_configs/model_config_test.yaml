@@ -1,0 +1,17 @@
+
+namespace: https://fdp.example.org/
+theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
+license: http://example.org/niet-open  # we don't have an LUMC standard yet.
+
+contactPoint:
+  contactPoint_email:
+  contactPoint_name:
+
+publisher:
+  publisher_name_en: 
+  publisher_name_nl:
+  publisher_email:
+  publisher_identifier:
+  publisher_url:
+
+langtags: en,nl
