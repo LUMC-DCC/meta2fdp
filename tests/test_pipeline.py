@@ -36,7 +36,7 @@ class CSVPipelinetests(unittest.TestCase):
 
 
     def tearDown(self):
-        subprocess.run(["docker", "compose", "down"], cwd=pathlib.Path("tests\\test_integration\\compose\\fdp\\ephemeral\\v1"))
+        subprocess.run(["docker", "compose", "down"], cwd=pathlib.Path("tests/test_integration/compose/fdp/ephemeral/v1"))
 
 
     def parse_yaml(self, conf_path):
