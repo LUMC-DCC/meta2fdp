@@ -1,14 +1,14 @@
 """Integration test of the CSV version of a pipeline made with the package"""
-import pathlib
 import sys
+import unittest
+from pathlib import Path
 
 
-BASE_DIR = pathlib.Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 
 # facilitate running tests from command line using `python -m unittest`
 sys.path.append(str(BASE_DIR.parent))
 
-import unittest
 
 import subprocess
 from samplenavigator2fdp.parsers.csvparser import CSVParser as Parser
@@ -19,14 +19,13 @@ from tests import build_fdp
 
 from rdflib import URIRef
 import yaml
-import pathlib
 import sys
 
 class CSVPipelinetests(unittest.TestCase):
 
     def __init__(self, methodName: str = "runTest", ) -> None:
-        self.config = self.parse_yaml(pathlib.Path("tests/test_files/test_configs/configuration_csv.yaml"))
-        self.default_values = self.parse_yaml(pathlib.Path("config/model_config.yaml"))
+        self.config = self.parse_yaml(Path("tests/test_files/test_configs/configuration_csv.yaml"))
+        self.default_values = self.parse_yaml(Path("config/model_config.yaml"))
         super().__init__(methodName)
         self.client = Client(self.config)
 
@@ -36,7 +35,7 @@ class CSVPipelinetests(unittest.TestCase):
 
 
     def tearDown(self):
-        subprocess.run(["docker", "compose", "down"], cwd=pathlib.Path("tests/test_integration/compose/fdp/ephemeral/v1"))
+        subprocess.run(["docker", "compose", "down"], cwd=Path("tests/test_integration/compose/fdp/ephemeral/v1"))
 
 
     def parse_yaml(self, conf_path):
@@ -66,8 +65,8 @@ class CSVPipelinetests(unittest.TestCase):
             raise ConnectionError
         
 
-        catalogs_df = parser.get_metadata(self.config["file_paths"]["catalog_input_file"])
-        datasets_df = parser.get_metadata(self.config["file_paths"]["dataset_input_file"]).set_index("title_en")
+        catalogs_df = parser.get_metadata(Path(self.config["file_paths"]["catalog_input_file"]))
+        datasets_df = parser.get_metadata(Path(self.config["file_paths"]["dataset_input_file"])).set_index("title_en")
 
         ####################### upload catalogs #######################
         for index, catalog_metadata in catalogs_df.iterrows():

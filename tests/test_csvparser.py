@@ -1,19 +1,18 @@
 import unittest
 import yaml
-import pathlib
 import sys
+from pathlib import Path
 
 
-BASE_DIR = pathlib.Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent
 
 # facilitate running tests from command line using `python -m unittest`
 sys.path.append(str(BASE_DIR.parent / 'src'))
 from samplenavigator2fdp.parsers.csvparser import CSVParser
 import sys
-import pathlib
 from pandas import DataFrame, read_csv
 
-config_path = pathlib.Path("tests/test_files/test_configs/configuration_csv.yaml")
+config_path = Path("tests/test_files/test_configs/configuration_csv.yaml")
 
 def parse_config(conf_path):
         try:
@@ -40,7 +39,7 @@ class CSVParserTests(unittest.TestCase):
     def testparse_catalog(self):
         catalog = self.parser.parse_catalog()
         self.assertEqual(type(catalog), DataFrame, "Catalog is not a DataFrame")
-        test_read = read_csv(self.config["file_paths"]["catalog_input_file"], sep=";",header=0)
+        test_read = read_csv(Path(self.config["file_paths"]["catalog_input_file"]), sep=";",header=0)
         #TODO might need to become a check if all mandatory property headers are there
         self.assertTrue(
             len(set(test_read.columns.to_list())-set(catalog.columns.to_list())) == 0,
@@ -50,7 +49,7 @@ class CSVParserTests(unittest.TestCase):
     def testparse_dataset(self):
         dataset = self.parser.parse_dataset()
         self.assertEqual(type(dataset), DataFrame, "dataset is not a DataFrame")
-        test_read = read_csv(self.config["file_paths"]["dataset_input_file"], sep=";",header=0)
+        test_read = read_csv(Path(self.config["file_paths"]["dataset_input_file"]), sep=";",header=0)
         #TODO might need to become a check if all mandatory property headers are there
         self.assertTrue(
             len(set(test_read.columns.to_list())-set(dataset.columns.to_list())) == 0,
