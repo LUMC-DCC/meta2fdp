@@ -2,7 +2,7 @@ mode:
   replace: False
   publish: True
 
-SQL:
+SQL: # labels of environment variables containing secrets:
   server_name: server_name
   database_name: database_name
   username: username
@@ -10,9 +10,10 @@ SQL:
   catalog_id: catalog_id
   dataset_id: dataset_id
 
-keyring:
-  fdp_service: credential_name
-  username: username
+FDP: # labels of environment variables containing secrets:
+  URL: ephemeralFDP #used as URL to interact with and keyring service name
+  username: ephemeralFDPusername
+  parent_resource_purl: parent_resource_purl
 
 FDP:
   URL: URL
