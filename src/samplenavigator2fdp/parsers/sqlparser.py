@@ -4,12 +4,14 @@ update function not yet implemented yet.
 
 """
 from samplenavigator2fdp.parsers.abstractparser import Parser
+from fdp.FDPClient import FDPClient
+from graphutils.graphutils import graphutils
 from rdflib import URIRef, BNode, DCAT, Namespace
 import yaml
 import pandas as pd
 import keyring
 from pymssql import connect
-
+import os
 
 class SQLParser(Parser):
 
@@ -84,7 +86,7 @@ class SQLParser(Parser):
             # transform catalog metadata:
             self.sempyro_catalog(pd.Series(catalog), self.graph, url=self.client.URL + "/new")
             # replace subject id with url needed to upload new data to FDP:
-            subject_replace(self.client.PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)  # util
+            graphutils.subject_replace(self.client.PURL + "new", BNode("Catalog"), DCAT.Catalog, self.graph)  # util
             #upload catalog
             catalog_purl = client.upload_resource(self.graph, self.client.URL, resource_type=DCAT.Catalog)
             if self.config["mode"]["publish"]:
@@ -96,11 +98,11 @@ class SQLParser(Parser):
                 # add dataset to graph:
                 self.sempyro_dataset(pd.Series(dataset_metadata), self.graph, self.client.PURL)
             # get a list of all datasets in the graph:
-            dataset_list = get_dataset_nodes(self.graph)  # util
+            dataset_list = graphutils.get_dataset_nodes(self.graph)  # util
             for node_id in dataset_list:
                 # extract dataset specific information
                 dataset_graph = self.graph.cbd(node_id[0])
-                subject_replace(self.client.PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)  # util
+                graphutils.subject_replace(self.client.PURL + "new", node_id[0], DCAT.Dataset, dataset_graph)  # util
                 # remove dataset metadata from graph
                 dataset_graph.remove((BNode(node_id[0]), None, None))
                 # link dataset to catalog
@@ -118,7 +120,7 @@ class SQLParser(Parser):
 
 if __name__ == "__main__":
     ## TODO should be done in the main.py:
-    conf_path = getenv("CONF_PATH", default="config/configuration.yaml")
+    conf_path = os.getenv("CONF_PATH", default="config/configuration.yaml")
 
     # get default values from config file
     with open(conf_path, "r") as config_file:
