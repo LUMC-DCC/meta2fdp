@@ -19,7 +19,7 @@ Note: Mamba is a recommendation, as it is compatible with conda you can use cond
 Dependencies are specified in `environment_linux.yml` or `samplenavigator2fdp` in the envs folder. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
 
 ```{bash}
-mamba env create -f environment.yml
+mamba env create -f envs/environment_os_independent.yml
 mamba activate samplenavigator2fdp
 ```
 
