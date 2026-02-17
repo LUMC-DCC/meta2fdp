@@ -1,5 +1,13 @@
 import unittest
 import yaml
+import pathlib
+import sys
+
+
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+
+# facilitate running tests from command line using `python -m unittest`
+sys.path.append(str(BASE_DIR.parent / 'src'))
 from samplenavigator2fdp.parsers.csvparser import CSVParser
 import sys
 import pathlib

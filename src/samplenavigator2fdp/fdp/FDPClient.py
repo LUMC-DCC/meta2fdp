@@ -2,36 +2,27 @@
     Interface to interact FDP content
     source: https://github.com/Orphanet/orphadata-fdp-populator/blob/master/FDPClient.py
 """
+from samplenavigator2fdp.fdp.abstractclient import AbstractClient
+from typing import override
 import requests
 import json
 from rdflib import Graph, RDF, URIRef, FOAF, DCAT, DCTERMS
-from samplenavigator2fdp.graphutils.graphutils import subject_replace
+from samplenavigator2fdp.graphutils.graphutils import graphutils
+from keyring import get_password
+from os import getenv
 
+utils = graphutils()
 
+class FDPClient(AbstractClient):
 
-class FDPClient:
-    """
-    Interface to interact FDP content
-    source: https://github.com/Orphanet/orphadata-fdp-populator/blob/master/FDPClient.py
-    """
-
-    # The main URL of the FDP server
-    URL = "https://example-fdp.nl"
-    # username of an FDP admin
-    FDP_ADMIN_USERNAME = "albert.einstein@example.com" 
-    # password of an FDP admin
-    FDP_ADMIN_PASSWORD = "password" 
-    # this is the URL of the parent resource
-    PURL = "https://example-fdp.nl/catalog/ac5d6134-6b7b-4989-80dd-5b1714023e3d" 
-
-    def __init__(self, fdp_url, username, password, persistent_url, verbose=True):
-        self.URL = fdp_url # this is the main URL of the FDP server
-        self.FDP_ADMIN_USERNAME = username
-        self.FDP_ADMIN_PASSWORD = password
-        self.PURL = persistent_url # this is the URL of the parent resource
-        self.verbose = verbose
-
-    def check_url(self, url):
+    def __init__(self, config) -> None:
+        self.config = config
+        self.URL = getenv(self.config["FDP"]["URL"])
+        self.token = None
+        self.parent_resource = self.config["FDP"]["parent_resource_purl"] if self.config["FDP"]["parent_resource_purl"] != "parent_resource_purl" else None
+    
+    @override
+    def connection_status(self):
         """
         Basic function to check if connection to FDP is possible
 
@@ -39,16 +30,19 @@ class FDPClient:
         :type url: String
         """
         try:
-            response = requests.get(url)
+            response = requests.get(self.URL)
             if response.status_code == 200:
-                print(f"Successfully connected to {url}")
+                if __debug__: 
+                    print(f"Successfully connected to {self.URL}")
+                return response.status_code
             else:
-                print(f"Failed to connect to {url}. Status code: {response.status_code}")
+                print(f"Failed to connect to {self.URL}. Status code: {response.status_code}")
+                return response.status_code
         except requests.exceptions.RequestException as e:
-            print(f"Error connecting to {url}: {e}")
+            print(f"Error connecting to {self.URL}: {e}")
 
-
-    def fdp_get_token(self):
+    @override
+    def get_api_token(self):
         """
         This function generates an bearer-token:
         https://swagger.io/docs/specification/authentication/bearer-authentication/
@@ -58,23 +52,32 @@ class FDPClient:
         :return: FDP API token
         :rtype: String
         """
-        url = self.URL + "/tokens"
-
-        data = {"email": self.FDP_ADMIN_USERNAME, "password": self.FDP_ADMIN_PASSWORD}
-
+        self.URL = getenv(self.config["FDP"]["URL"])
+        self.token = get_password(self.URL, getenv(self.config["FDP"]["username"]))
+        
+        # Check if api-key works:
+        url = self.URL + "/users/current"
+        data = {}
         payload = json.dumps(data)
-
         headers = {
-            'Content-Type': "application/json"
+            'Content-Type': "application/json",
+            'Authorization': "Bearer " + self.token
         }
-
-        response = requests.request("POST", url, data=payload, headers=headers)
+        response = requests.request("get", url, data=payload, headers=headers)
         #print(response.text)
-        data = json.loads(response.text)
-
-        return data["token"]
+        if response.status_code == 200:
+            pass
+        elif response.status_code == 401:
+            raise ConnectionRefusedError("API Token has no Authorization! Check the pipeline config FDP attributes if correct environment variables are assiged")
+        elif response.status_code == 403:
+            raise ConnectionRefusedError("API Token is forbidden to see current user data! Check the pipeline config FDP attributes if correct environment variables are assiged")
+        else:
+            raise ConnectionRefusedError(f"API-key doesn't work, error: {response.json()["text"]["error"]}")
     
-    def get_metadata(self, url):
+    
+    
+    @override
+    def get_resource(self, url):
         """
         This function obtains resource metadata  
         
@@ -83,12 +86,13 @@ class FDPClient:
         :return: response body
         :rtype: String
         """
-        data = {"email": self.FDP_ADMIN_USERNAME, "password": self.FDP_ADMIN_PASSWORD}
+        data = {}
         
         payload = json.dumps(data)
 
         headers = {
-            'Content-Type': "text/turtle"
+            'Content-Type': "text/turtle",
+            'Authorization': "Bearer " + self.token
         }
 
         response = requests.request("GET", url, data=payload, headers=headers)
@@ -97,7 +101,8 @@ class FDPClient:
 
         return body
 
-    def create_metadata(self, data, resource_type):
+    @override
+    def post_resource(self, data, resource_type):
         """
         This function is used to upload resource metadata onto a FDP server.
 
@@ -111,24 +116,20 @@ class FDPClient:
         #print(data)
         # merge server url with resource type to define the resource for the server
         url = self.URL + "/" + resource_type
-        token = self.fdp_get_token() # log in
-        authorization = "Bearer " + token
         headers = {
             'Content-Type': "text/turtle",
-            'Authorization': authorization
+            'Authorization': "Bearer " + self.token
         } # change Content-Type to work with other formatting
         if not isinstance(data, str): # make sure the resource description is a string or change it into a string if not
             data = data.decode("utf-8")
         # upload resource description
         response = requests.request("POST", url, data=data.encode('utf-8'), headers=headers)
         # TODO: make this a verbose mode
-        if self.verbose:
+        if True:
             print(response.status_code) #check server response
             print(response.headers)
             print(response.text)
             print(response.content)
-        # FIXME this already throws an error:
-        #resource_url = response.headers["Location"] # get the FDP server URL of the new resource description
         try:
             resource_url = response.headers["Location"]
         except KeyError:
@@ -138,15 +139,14 @@ class FDPClient:
 
         return resource_url
 
-    def publish_metadata(self, url):
+    @override
+    def publish_resource(self, url):
         """
         This function sends the FDP server a command to publish a resource description.
 
         :param url: A string containing the url linking tot the resource description on the FDP
         :type url: String
         """
-        token = self.fdp_get_token() # log in
-        authorization = "Bearer " + token
         # extend the url to point to the publication state attribute of the resource description
         state_url = url + "/meta/state" 
         # Define the resource description as published
@@ -154,18 +154,19 @@ class FDPClient:
 
         headers = {
             'Content-Type': "application/json",
-            'Authorization': authorization
+            'Authorization': "Bearer " + self.token
         }
 
         payload = json.dumps(data)
         response = requests.request("PUT", state_url, data=payload, headers=headers)
         # check server response (manual)
-        if self.verbose:
+        if __debug__:
             print(response.status_code)
             print(response.headers)
             print(response.text)
 
-    def update_metadata(self, resource_url, body):
+    @override
+    def put_resource(self, resource_url, body):
         """
         Update content of a given resource description.
         
@@ -174,73 +175,18 @@ class FDPClient:
         :param body: A string containing a turtle formatted RDF that changes the resource
         :type body: String
         """
-        token = self.fdp_get_token()
         headers = {
             'Content-Type': 'text/turtle',
-            'Authorization': 'Bearer {}'.format(token),
-            'Origin': 'https://fdp.example.org',
+            'Authorization': "Bearer " + self.token,
+            'Origin': self.URL,
             'Referer': resource_url + "/edit"
         }
         response = requests.request("PUT", resource_url, data=body.encode("utf-8"), headers=headers)
         if self.verbose:
             print(response)
         return response
-    
-    def upload_data(self, data, resource_name="Catalog"):
-        #HACK
-        """
-        Use the FDPClient to upload metadata.
 
-        :param data: FDP resource
-        :type data: rdflib Graph object
-        :param resource_name: Name of the resource, this should be the one that is used in the resource profile on the FDP
-        :type resource_name: String
-        :return: FDP api response containing resource URL
-        :rtype: String
-        """
-        #added .lower to make sure the code works with the resource URL used by the LUMC FDP
-        if resource_name == "DatasetSeries" or resource_name == "Network" or resource_name == "Population":
-            response = self.create_metadata(data, resource_name)
-        else:
-            response = self.create_metadata(data, resource_name.lower())
-        return response
-
-
-    def link_resource(self, graph, purl, resource_type):
-        #TODO change purl to better variable name
-        """
-        This function reads a graph, finds the
-        target resource and links it to the given
-        parent resource. This should be a parent
-        resource in the target FDP.
-
-        :param graph: Resource graph 
-        :type graph: RDF Graph object
-        :param purl: the permament url associated with the parent node of the resource
-        :type purl: URIRef
-        :param resource_type: dcat resouce type
-        :type resource_type: String
-        :return: linked resource graph Turtle serialization
-        :rtype: String
-        """
-        print(graph.serialize())
-        res = graph.query("SELECT ?s WHERE {?s ?p <" +  str(resource_type) +  "> . } ") #TODO make this work for multiple resource definitions.
-        x = 0
-        for s in res:
-            subject = s[0]
-            x += 1
-        if x > 1:
-            raise Exception("multiple class instances of {}".format(resource_type))
-        if x == 0:
-            raise Exception(
-                "could not find class {} in graph".format(resource_type)
-            )
-        graph.add((subject, DCTERMS.isPartOf, URIRef(purl)))
-        # print("debug link resource")
-        # print(graph.serialize())
-        return graph.serialize() 
-
-
+    @override
     def upload_resource(self, graph, purl, resource_type="Catalog", resource_name="Catalog"):
         """
         This function takes links the current FDP resource to it's parent node,
@@ -258,15 +204,10 @@ class FDPClient:
         :rtype: String
         """
         data = self.link_resource(graph, purl, resource_type)
-        #print(data)
         resource_url = self.upload_data(data, resource_name)
-        #print(resource_url)
-        # time.sleep(5) # sleep to make sure that the server has time handle the POST request
-        # self.publish_metadata(resource_url)
-        #self.update_metadata(resource_url, test_body)
         return resource_url
 
-
+    @override
     def get_children(self, graph: Graph):
         """
         Obtain child nodes of FDP resource.
@@ -361,7 +302,7 @@ class FDPClient:
             raise IndexError("resource id {} does not match with current update!".format(url))
         else:
             #assume that object is fdp/new URL
-            subject_replace(url, node_id=self.PURL + "new", dcat_type=dcat_type, graph=new_graph)
+            utils.subject_replace(url, node_id=self.URL + "/" + "new", dcat_type=dcat_type, graph=new_graph)
             #print(FDP_graph.serialize())
             old_agents = [triple for triple in FDP_graph.triples((None, RDF.type, FOAF.Agent))]
             old_Kinds = [triple for triple in FDP_graph.triples((None, RDF.type, URIRef("http://www.w3.org/2006/vcard/ns#Kind")))]
@@ -417,7 +358,8 @@ class FDPClient:
         :param graph: new catalog metadata content
         :type graph: RDFLib Graph
         """
-        #parser.graph.set((URIRef(PURL + "new"), DCTERMS.description , Literal("check check"))) #HACK debug reporter
+        ## debug reporter
+        #parser.graph.set((URIRef(URL + "/" + "new"), DCTERMS.description , Literal("check check"))) 
         catalog_graph = self.update_resource(catalog_purl, DCAT.Catalog, graph)
         return catalog_graph
 

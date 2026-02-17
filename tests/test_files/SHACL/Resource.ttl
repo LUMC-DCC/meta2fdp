@@ -35,3 +35,4 @@ hri:ResourceShape a owl:Ontology, sh:NodeShape;
   owl:versionInfo "0.1";
   dct:modified "2025-07-14T08:12:44.070Z"^^xsd:dateTime;
   sh:targetClass dcat:Resource .
+  

@@ -2,15 +2,11 @@ mode:
   replace: False
   publish: True
 
-keyring:
-  fdp_service: credential_name
-  username: username
-
-FDP:
-  URL: URL  # should not end with 
-  PURL: PURL  # should end with /
+FDP: # labels of environment variables containing secrets:
+  URL: ephemeralFDP #used as URL to interact with and keyring service name
+  username: ephemeralFDPusername
   parent_resource_purl: parent_resource_purl
-  
+
 file_paths: # settings for running the main inside src:
   catalog_input_file: catalog_input_file
   dataset_input_file: datasets_input_file

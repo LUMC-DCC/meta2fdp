@@ -1,22 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from rdflib import Graph, URIRef
+from os import getenv
 
-class Client(metaclass=ABCMeta):
+class AbstractClient(metaclass=ABCMeta):
 
     def __init__(self, config) -> None:
         self.config = config
-        self.URL = None
-        self.token = None #Only store token 
+        
     
-    @abstractmethod
-    def load_config(self, path:str) -> None:
-        """A function that sets all required variables
-        for a functioning client
-
-        :param path: Path to config file
-        :type path: str
-        """
-
     @abstractmethod
     def connection_status(self) -> int:
         """Basic function to check if connection to a FDP is possible
@@ -24,7 +15,7 @@ class Client(metaclass=ABCMeta):
         :return: server response status code
         :rtype: int
         """
-    
+
 
     @abstractmethod
     def get_api_token(self, keyring_service: str, keyring_username: str) -> str:
@@ -88,24 +79,6 @@ class Client(metaclass=ABCMeta):
         :param resource_type: The resource type/class name on the FDP,
         this is case sensitive and will be used in the requests in this way: <https://fdp.org/RESOURCE_TYPE>
         :type resource_type: str
-        """
-
-
-    def upload_resource(self, graph: Graph, resource_subject: str, parent_purl: URIRef, resource_type: str) -> str:
-        """Combines link_resource and post_resource to upload a complete resource
-        description.
-
-        :param graph: Graph containing resource description
-        :type graph: Graph
-        :param resource_subject: subject uri of resource
-        :type resource_subject: str
-        :param parent_purl: PURL/uri of parent resource
-        :type parent_purl: URIRef
-        :param resource_type: The resource type/class name on the FDP,
-        this is case sensitive <https://fdp.org/RESOURCE_TYPE>
-        :type resource_type: str
-        :return: Location of the new resource on the FDP ie URL
-        :rtype: str
         """
 
     
