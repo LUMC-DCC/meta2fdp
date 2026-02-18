@@ -1,1 +1,0 @@
-__name__ = "samplenavigator2fdp"
