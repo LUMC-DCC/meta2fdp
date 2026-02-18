@@ -1,5 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from pandas import DataFrame
+from pathlib import Path
+from typing import Union
+from os import PathLike
 
 
 class AbstractParser(metaclass=ABCMeta):
@@ -8,6 +11,22 @@ class AbstractParser(metaclass=ABCMeta):
     """
     def __init__(self, config) -> None:
         self.config = config
+
+    def _resolve_path(self, p: Union[str, PathLike, Path]) -> Path:
+        """
+        Resolve and validate a filesystem path.
+
+        :param p: Path-like object or string to resolve.
+        :type p: str or os.PathLike or pathlib.Path
+        :returns: Resolved pathlib.Path
+        :rtype: pathlib.Path
+        :raises FileNotFoundError: If the resolved path does not exist.
+        """
+        p = Path(p)
+        p = p.expanduser().resolve(strict=False)
+        if not p.exists():
+            raise FileNotFoundError(f"File not found: {p}")
+        return p
 
     @abstractmethod
     def get_metadata(self, path: str) -> DataFrame:
@@ -25,7 +44,7 @@ class AbstractParser(metaclass=ABCMeta):
     @abstractmethod
     def parse_catalog(self) -> DataFrame:
         """A function that extracts catalog metadata from the configured source.
-        
+
         :return: A collection of metadata on catalog resources
         :rtype: DataFrame
         """
@@ -34,16 +53,16 @@ class AbstractParser(metaclass=ABCMeta):
 
     def parse_dataset(self) -> DataFrame:
         """A function that extracts dataset metadata from the configured source.
-        
+
         :return: A collection of metadata on dataset resources
         :rtype: DataFrame
         """
         pass
 
-    
+
     def parse_distribution(self) -> DataFrame:
         """A function that extracts distribution metadata from the configured source.
-        
+
         :return: A collection of metadata on distribution resources
         :rtype: DataFrame
         """
@@ -63,7 +82,7 @@ class AbstractParser(metaclass=ABCMeta):
         #TODO A datasetSeries does not have bidirectional connection to the dataset, we need to decide on a methodology on connecting these resources
         # datasets are connected to datasetSeries but the datasetSeries has no ownership connection the other way around.
         """A function that extracts datasetseries metadata from the configured source.
-        
+
         :return: A collection of metadata on distribution resources
         :rtype: DataFrame
         """

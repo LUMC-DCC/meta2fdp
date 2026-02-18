@@ -22,26 +22,6 @@ class CSVParser(AbstractParser):
         self.config = config
 
 
-    def _resolve_path(self, p) -> Path:
-        """
-        Resolve and validate a filesystem path.
-
-        Expands the user home (~), performs a non-strict resolve (so missing
-        targets do not raise during resolution), and verifies existence.
-
-        :param p: Path-like object or string to resolve.
-        :type p: os.PathLike or str
-        :returns: Resolved pathlib.Path
-        :rtype: pathlib.Path
-        :raises FileNotFoundError: If the resolved path does not exist.
-        """
-        p = Path(p)
-        p = p.expanduser().resolve(strict=False)
-        if not p.exists():
-            raise FileNotFoundError(f"File not found: {p}")
-        return p
-
-
     def get_metadata(self, path: Path) -> pd.DataFrame:
         """
         Read a CSV file and return its contents as a pandas DataFrame.
