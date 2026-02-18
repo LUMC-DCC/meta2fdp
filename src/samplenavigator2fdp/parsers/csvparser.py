@@ -49,7 +49,7 @@ class CSVParser(AbstractParser):
         :raises FileNotFoundError: If the config value is missing or file not found.
         """
         catalog_path = self.config.get("file_paths", {}).get("catalog_input_file")
-        if not catalog_path or catalog_path == "catalog_input_file":
+        if not catalog_path:
             raise FileNotFoundError("Catalog file path has not been set in config!")
         return self.get_metadata(catalog_path)
 

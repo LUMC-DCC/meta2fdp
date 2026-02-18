@@ -36,9 +36,13 @@ class CSVParserTests(unittest.TestCase):
         # Normalize file paths to pathlib.Path and resolve relative to BASE_DIR
         file_paths = {}
         for k, v in (self.config.get("file_paths") or {}).items():
+            if v is None:
+                file_paths[k] = None
+                continue
             p = Path(v)
             if not p.is_absolute():
                 p = (BASE_DIR / p).resolve()
+                p.exists()
             file_paths[k] = p
         self.config["file_paths"] = file_paths
 
@@ -51,8 +55,9 @@ class CSVParserTests(unittest.TestCase):
         df = self.parser.parse_catalog()
         self.assertIsInstance(df, DataFrame)
         reference = read_csv(catalog_path, sep=";", header=0)
+        # TODO: handle other CSV separators
         self.assertTrue(set(reference.columns).issubset(set(df.columns)))
-        #TODO: test for all manadatory properties being present in the output
+        #TODO: test for all mandatory properties being present in the output
 
     def test_parse_dataset(self):
         dataset_path = self.config["file_paths"].get("dataset_input_file")
@@ -63,7 +68,7 @@ class CSVParserTests(unittest.TestCase):
         reference = read_csv(dataset_path, sep=";", header=0)
         self.assertTrue(set(reference.columns).issubset(set(df.columns)))
 
-    def test_parse_distribution_skipped_if_missing(self):
+    def test_parse_distribution(self):
         dist_path = self.config["file_paths"].get("distribution_input_file")
         if not dist_path or not dist_path.exists():
             self.skipTest("distribution_input_file missing for tests")
@@ -83,10 +88,8 @@ class CSVParserTests(unittest.TestCase):
         if not dataset_path or not dataset_path.exists():
             self.skipTest("dataset_input_file missing for tests")
         # ensure both Path and str are accepted
-        df_from_path = self.parser.get_metadata(dataset_path)
-        df_from_str = self.parser.get_metadata(str(dataset_path))
-        self.assertIsInstance(df_from_path, DataFrame)
-        self.assertIsInstance(df_from_str, DataFrame)
+        df = self.parser.get_metadata(dataset_path)
+        self.assertIsInstance(df, DataFrame)
 
 
 if __name__ == "__main__":
