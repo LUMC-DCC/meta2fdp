@@ -9,7 +9,7 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 # facilitate running tests from command line using `python -m unittest`
 sys.path.append(str(BASE_DIR.parent / 'src'))
 
-from samplenavigator2fdp.converters.hriv2model import Hriv2Model as Model
+from meta2fdp.converters.hriv2model import Hriv2Model as Model
 import pandas as pd
 from sempyro import LiteralField, hri_dcat
 from rdflib import URIRef, Graph

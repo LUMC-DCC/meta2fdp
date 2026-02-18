@@ -1,7 +1,7 @@
 import pandas as pd
 from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
-from samplenavigator2fdp.converters.abstractmodel import AbstractModel
+from meta2fdp.converters.abstractmodel import AbstractModel
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog, 

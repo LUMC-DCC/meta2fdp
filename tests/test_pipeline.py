@@ -11,10 +11,10 @@ sys.path.append(str(BASE_DIR.parent))
 
 
 import subprocess
-from samplenavigator2fdp.parsers.csvparser import CSVParser as Parser
-from samplenavigator2fdp.converters.hriv2model import Hriv2Model as Model
-from samplenavigator2fdp.graphutils.graphutils import graphutils
-from samplenavigator2fdp.fdp.FDPClient import FDPClient as Client
+from meta2fdp.parsers.csvparser import CSVParser as Parser
+from meta2fdp.converters.hriv2model import Hriv2Model as Model
+from meta2fdp.graphutils.graphutils import graphutils
+from meta2fdp.fdp.FDPClient import FDPClient as Client
 from tests import build_fdp
 
 from rdflib import URIRef

@@ -4,7 +4,7 @@ CSV parser adapter for FDP.
 This module implements :class:`CSVParser`, an adapter that reads CSV files
 and returns :class:`pandas.DataFrame` objects for downstream processing.
 """
-from samplenavigator2fdp.parsers.abstractparser import AbstractParser
+from meta2fdp.parsers.abstractparser import AbstractParser
 import pandas as pd
 from pathlib import Path
 

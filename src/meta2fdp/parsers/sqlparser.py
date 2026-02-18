@@ -3,7 +3,7 @@
 update function not yet implemented yet.
 
 """
-from samplenavigator2fdp.parsers.abstractparser import Parser
+from meta2fdp.parsers.abstractparser import Parser
 from fdp.FDPClient import FDPClient
 from graphutils.graphutils import graphutils
 from rdflib import URIRef, BNode, DCAT, Namespace

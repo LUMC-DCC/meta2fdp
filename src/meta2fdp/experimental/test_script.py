@@ -1,4 +1,4 @@
-from samplenavigator2fdp.graphutils.graphutils import convert_prefix, prepared_graph
+from meta2fdp.graphutils.graphutils import convert_prefix, prepared_graph
 
 graph, prefix_map = prepared_graph()
 with open("schema/shacl/v2/Dataset.ttl", "r") as file:

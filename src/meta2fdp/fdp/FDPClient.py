@@ -2,12 +2,12 @@
     Interface to interact FDP content
     source: https://github.com/Orphanet/orphadata-fdp-populator/blob/master/FDPClient.py
 """
-from samplenavigator2fdp.fdp.abstractclient import AbstractClient
+from meta2fdp.fdp.abstractclient import AbstractClient
 from typing import override
 import requests
 import json
 from rdflib import Graph, RDF, URIRef, FOAF, DCAT, DCTERMS
-from samplenavigator2fdp.graphutils.graphutils import graphutils
+from meta2fdp.graphutils.graphutils import graphutils
 from keyring import get_password
 from os import getenv
 

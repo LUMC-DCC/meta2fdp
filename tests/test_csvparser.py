@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # Ensure local src is importable before importing project modules
 sys.path.append(str((BASE_DIR.parent / "src").resolve()))
 
-from samplenavigator2fdp.parsers.csvparser import CSVParser
+from meta2fdp.parsers.csvparser import CSVParser
 
 
 def parse_config(conf_path: Path):

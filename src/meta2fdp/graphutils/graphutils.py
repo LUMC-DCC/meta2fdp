@@ -1,7 +1,7 @@
 """Utility functions for minor modifications and extractions on a RDFLib Graph
 
 """
-from samplenavigator2fdp.graphutils.graphinteractor import GraphInteractor
+from meta2fdp.graphutils.graphinteractor import GraphInteractor
 from rdflib import Graph, Literal, URIRef, DCTERMS, XSD
 
 
