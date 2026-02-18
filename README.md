@@ -16,12 +16,16 @@ Note: Mamba is a recommendation, as it is compatible with conda you can use cond
 
 ### Create and activate `conda`/`mamba` environment
 
-Dependencies are specified in `environment_linux.yml` or `meta2fdp` in the envs folder. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
+Dependencies are specified in `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. This is a minimum environment with only Python and the uv package manager created using `conda env export --no-builds --from-history > envs/meta2fdp.yml`.
 
 ```{bash}
-mamba env create -f envs/environment_os_independent.yml
+mamba env create -f envs/meta2fdp.yml
 mamba activate meta2fdp
 ```
+
+### Install meta2fdp package
+
+
 
 #### Install missing packages
 
