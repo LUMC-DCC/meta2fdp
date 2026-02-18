@@ -1,4 +1,4 @@
-# Samplenavigator2FDP
+# Meta2FDP
 
 ## description
 This is a project to make an adapter from Samplenavigator to the LUMC FDP, at the same time it is the current project that has active development into making a package for onboarding metadata on the Health-RI Metadata catalog. This package should be able to handle the most common input types and be able to transform the given metadata into RDF and publish it to the LUMC FDP. Current version is able to parse, csv, excel and direct mssql connections. Current implementations are primairely for catalog and dataset metadata as these are the mandatory classes within the [Health-RI Schema](https://github.com/Health-RI/health-ri-metadata). Note: LLS/mongodb implementation is currently not in this project as it was made for the v1 schema and has to be reworked to be properly integrated.
@@ -16,11 +16,11 @@ Note: Mamba is a recommendation, as it is compatible with conda you can use cond
 
 ### Create and activate `conda`/`mamba` environment
 
-Dependencies are specified in `environment_linux.yml` or `samplenavigator2fdp` in the envs folder. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
+Dependencies are specified in `environment_linux.yml` or `meta2fdp` in the envs folder. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information.
 
 ```{bash}
 mamba env create -f envs/environment_os_independent.yml
-mamba activate samplenavigator2fdp
+mamba activate meta2fdp
 ```
 
 #### Install missing packages
