@@ -1,12 +1,13 @@
-"""
-CSV parser adapter for FDP.
+"""CSVParser: Adapter for reading CSV files into pandas DataFrames.
 
 This module implements :class:`CSVParser`, an adapter that reads CSV files
 and returns :class:`pandas.DataFrame` objects for downstream processing.
 """
-from meta2fdp.parsers.abstractparser import AbstractParser
+
 import pandas as pd
 from pathlib import Path
+from meta2fdp.parsers.abstractparser import AbstractParser
+
 
 class CSVParser(AbstractParser):
     """
@@ -20,7 +21,6 @@ class CSVParser(AbstractParser):
 
     def __init__(self, config: dict):
         self.config = config
-
 
     def get_metadata(self, path: Path) -> pd.DataFrame:
         """
@@ -37,7 +37,6 @@ class CSVParser(AbstractParser):
         p = self._resolve_path(path)
         return pd.DataFrame(pd.read_csv(str(p), sep=";", header=0))
 
-
     def parse_catalog(self) -> pd.DataFrame:
         """
         Parse the catalog CSV specified in the config.
@@ -52,7 +51,6 @@ class CSVParser(AbstractParser):
         if not catalog_path:
             raise FileNotFoundError("Catalog file path has not been set in config!")
         return self.get_metadata(catalog_path)
-
 
     def parse_dataset(self) -> pd.DataFrame:
         """
@@ -69,7 +67,6 @@ class CSVParser(AbstractParser):
             raise FileNotFoundError("Dataset file path has not been set in config!")
         return self.get_metadata(dataset_path)
 
-
     def parse_distribution(self) -> pd.DataFrame:
         """
         Parse the distribution CSV specified in the config.
@@ -80,8 +77,11 @@ class CSVParser(AbstractParser):
         :rtype: pandas.DataFrame
         :raises FileNotFoundError: If the config value is missing or file not found.
         """
-        distribution_path = self.config.get("file_paths", {}).get("distribution_input_file")
+        distribution_path = self.config.get("file_paths", {}).get(
+            "distribution_input_file"
+        )
         if not distribution_path:
-            raise FileNotFoundError("Distribution file path has not been set in config!")
+            raise FileNotFoundError(
+                "Distribution file path has not been set in config!"
+            )
         return self.get_metadata(distribution_path)
-
