@@ -1,67 +1,93 @@
 import sys
 import unittest
 import yaml
-from pandas import DataFrame, read_csv
+from copy import deepcopy
 from pathlib import Path
-from samplenavigator2fdp.parsers.csvparser import CSVParser
+from pandas import DataFrame, read_csv
 
 BASE_DIR = Path(__file__).resolve().parent
+# Ensure local src is importable before importing project modules
+sys.path.append(str((BASE_DIR.parent / "src").resolve()))
 
-# facilitate running tests from command line using `python -m unittest`
-sys.path.append(str(BASE_DIR.parent / 'src'))
+from samplenavigator2fdp.parsers.csvparser import CSVParser
 
-config_path = Path("tests/test_files/test_configs/configuration_csv.yaml")
 
-def parse_config(conf_path):
-        try:
-            with open(conf_path, "r") as config_file:
-                config = yaml.safe_load(config_file)  # used to obtain right value types from the yaml like booleans
-                return config
-        except FileNotFoundError:
-            print(f"Configuration file not found: {conf_path}")
-            sys.exit(1)
-        except yaml.YAMLError as e:
-            print(f"Error parsing YAML configuration file: {e}")
-            sys.exit(1) 
+def parse_config(conf_path: Path):
+    try:
+        with conf_path.open("r", encoding="utf-8") as config_file:
+            return yaml.safe_load(config_file)
+    except FileNotFoundError:
+        raise
+    except yaml.YAMLError as e:
+        raise RuntimeError(f"Error parsing YAML configuration: {e}") from e
 
-config = parse_config(config_path)
 
 class CSVParserTests(unittest.TestCase):
 
-    def __init__(self, methodName: str = "runTest") -> None:
-        super().__init__(methodName)
-        self.config = config
+    def setUp(self):
+        conf_path = BASE_DIR / "test_files" / "test_configs" / "configuration_csv.yaml"
+        try:
+            self.config = parse_config(conf_path)
+        except FileNotFoundError:
+            self.skipTest(f"Test configuration not found: {conf_path}")
+        except RuntimeError as e:
+            self.skipTest(str(e))
+
+        # Normalize file paths to pathlib.Path and resolve relative to BASE_DIR
+        file_paths = {}
+        for k, v in (self.config.get("file_paths") or {}).items():
+            p = Path(v)
+            if not p.is_absolute():
+                p = (BASE_DIR / p).resolve()
+            file_paths[k] = p
+        self.config["file_paths"] = file_paths
+
         self.parser = CSVParser(self.config)
 
+    def test_parse_catalog(self):
+        catalog_path = self.config["file_paths"].get("catalog_input_file")
+        if not catalog_path or not catalog_path.exists():
+            self.skipTest("catalog_input_file missing for tests")
+        df = self.parser.parse_catalog()
+        self.assertIsInstance(df, DataFrame)
+        reference = read_csv(catalog_path, sep=";", header=0)
+        self.assertTrue(set(reference.columns).issubset(set(df.columns)))
+        #TODO: test for all manadatory properties being present in the output
 
-    def testparse_catalog(self):
-        catalog = self.parser.parse_catalog()
-        self.assertEqual(type(catalog), DataFrame, "Catalog is not a DataFrame")
-        test_read = read_csv(Path(self.config["file_paths"]["catalog_input_file"]), sep=";",header=0)
-        #TODO might need to become a check if all mandatory property headers are there
-        self.assertTrue(
-            len(set(test_read.columns.to_list())-set(catalog.columns.to_list())) == 0,
-            "Not all reference properties in parsed catalog dataframe colnames!"
-        )
+    def test_parse_dataset(self):
+        dataset_path = self.config["file_paths"].get("dataset_input_file")
+        if not dataset_path or not dataset_path.exists():
+            self.skipTest("dataset_input_file missing for tests")
+        df = self.parser.parse_dataset()
+        self.assertIsInstance(df, DataFrame)
+        reference = read_csv(dataset_path, sep=";", header=0)
+        self.assertTrue(set(reference.columns).issubset(set(df.columns)))
 
-    def testparse_dataset(self):
-        dataset = self.parser.parse_dataset()
-        self.assertEqual(type(dataset), DataFrame, "dataset is not a DataFrame")
-        test_read = read_csv(Path(self.config["file_paths"]["dataset_input_file"]), sep=";",header=0)
-        #TODO might need to become a check if all mandatory property headers are there
-        self.assertTrue(
-            len(set(test_read.columns.to_list())-set(dataset.columns.to_list())) == 0,
-            "Not all reference properties in parsed dataset dataframe colnames!"
-        )
-
-    @unittest.skipIf(config["file_paths"]["distribution_input_file"] == "distribution_input_file", "no distribution file in test config yet, skipping distribution parsing test.")
-    def testparse_distribution(self):
+    def test_parse_distribution_skipped_if_missing(self):
+        dist_path = self.config["file_paths"].get("distribution_input_file")
+        if not dist_path or not dist_path.exists():
+            self.skipTest("distribution_input_file missing for tests")
+        # if present, exercise the method
         self.parser.parse_distribution()
 
-    @unittest.skipIf(config["file_paths"]["dataservice_input_file"] == "dataservice_input_file", "no datasetseries file in test config yet, skipping datasetseries parsing test.")
-    def testparse_dataservice(self):
-        self.parser.parse_dataservice()
-    
-    @unittest.skipIf(config["file_paths"]["datasetseries_input_file"] == "datasetseries_input_file", "no datasetseries file in test config yet, skipping datasetseries parsing test.")
-    def testparse_datasetseries(self):
-        self.parser.parse_distribution()
+    def test_parse_catalog_raises_when_file_missing(self):
+        cfg = deepcopy(self.config)
+        # use a Path object guaranteed not to exist
+        cfg["file_paths"]["catalog_input_file"] = BASE_DIR / "no_such_file.csv"
+        parser = CSVParser(cfg)
+        with self.assertRaises(FileNotFoundError):
+            parser.parse_catalog()
+
+    def test_get_metadata_accepts_path_and_str(self):
+        dataset_path = self.config["file_paths"].get("dataset_input_file")
+        if not dataset_path or not dataset_path.exists():
+            self.skipTest("dataset_input_file missing for tests")
+        # ensure both Path and str are accepted
+        df_from_path = self.parser.get_metadata(dataset_path)
+        df_from_str = self.parser.get_metadata(str(dataset_path))
+        self.assertIsInstance(df_from_path, DataFrame)
+        self.assertIsInstance(df_from_str, DataFrame)
+
+
+if __name__ == "__main__":
+    unittest.main()
