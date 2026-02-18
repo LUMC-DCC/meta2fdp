@@ -1,16 +1,14 @@
+import sys
 import unittest
 import yaml
-import sys
+from pandas import DataFrame, read_csv
 from pathlib import Path
-
+from samplenavigator2fdp.parsers.csvparser import CSVParser
 
 BASE_DIR = Path(__file__).resolve().parent
 
 # facilitate running tests from command line using `python -m unittest`
 sys.path.append(str(BASE_DIR.parent / 'src'))
-from samplenavigator2fdp.parsers.csvparser import CSVParser
-import sys
-from pandas import DataFrame, read_csv
 
 config_path = Path("tests/test_files/test_configs/configuration_csv.yaml")
 
