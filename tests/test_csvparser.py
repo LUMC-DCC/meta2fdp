@@ -1,15 +1,11 @@
-import sys
 import unittest
 import yaml
 from copy import deepcopy
 from pathlib import Path
 from pandas import DataFrame, read_csv
+from meta2fdp.parsers.csvparser import CSVParser
 
 BASE_DIR = Path(__file__).resolve().parent
-# Ensure local src is importable before importing project modules
-sys.path.append(str((BASE_DIR.parent / "src").resolve()))
-
-from meta2fdp.parsers.csvparser import CSVParser
 
 
 def parse_config(conf_path: Path):
@@ -23,7 +19,6 @@ def parse_config(conf_path: Path):
 
 
 class CSVParserTests(unittest.TestCase):
-
     def setUp(self):
         conf_path = BASE_DIR / "test_files" / "test_configs" / "configuration_csv.yaml"
         try:
@@ -54,7 +49,7 @@ class CSVParserTests(unittest.TestCase):
         reference = read_csv(catalog_path, sep=";", header=0)
         # TODO: handle other CSV separators
         self.assertTrue(set(reference.columns).issubset(set(df.columns)))
-        #TODO: test for all mandatory properties being present in the output
+        # TODO: test for all mandatory properties being present in the output
 
     def test_parse_dataset(self):
         dataset_path = self.config["file_paths"].get("dataset_input_file")
