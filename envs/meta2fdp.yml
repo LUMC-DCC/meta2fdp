@@ -1,0 +1,7 @@
+name: meta2fdp_3.12
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - uv
+
