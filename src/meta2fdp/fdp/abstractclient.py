@@ -1,3 +1,5 @@
+"""Abstract client class for FDP interaction. This class defines the interface for all clients that interact with an FDP server. It contains abstract methods that must be implemented by any concrete client class that inherits from it. The methods include functions for checking connection status, getting API tokens, getting and posting resources, publishing resources, and updating resource graphs.
+"""
 from abc import ABCMeta, abstractmethod
 from rdflib import Graph, URIRef
 
