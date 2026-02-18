@@ -1,5 +1,5 @@
 [project]
-name = "samplenavigator2fdp"
+name = "meta2fdp"
 version = "0.1.0"
 description = "Adapters between source systems and a FAIR Data Point for publishing metadata."
 readme = "README.md"
