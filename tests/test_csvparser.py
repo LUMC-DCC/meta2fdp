@@ -33,16 +33,13 @@ class CSVParserTests(unittest.TestCase):
         except RuntimeError as e:
             self.skipTest(str(e))
 
-        # Normalize file paths to pathlib.Path and resolve relative to BASE_DIR
+        # Normalize file paths to pathlib.Path
         file_paths = {}
         for k, v in (self.config.get("file_paths") or {}).items():
             if v is None:
                 file_paths[k] = None
                 continue
             p = Path(v)
-            if not p.is_absolute():
-                p = (BASE_DIR / p).resolve()
-                p.exists()
             file_paths[k] = p
         self.config["file_paths"] = file_paths
 
