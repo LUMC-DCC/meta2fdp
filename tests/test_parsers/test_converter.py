@@ -1,11 +1,9 @@
 from unittest import TestCase
-from .context import meta2fdp
+import meta2fdp
 
 
 class ConverterTests(TestCase):
-
-    def test_vcard_rdf():
+    def test_vcard_rdf(self):
         Converter = meta2fdp.parsers.hriconverter()
-        #TODO Series object with dataset metadata.
+        # TODO Series object with dataset metadata.
         Converter.vcard_rdf()
-
