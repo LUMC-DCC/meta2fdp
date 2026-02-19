@@ -1,24 +1,27 @@
 [project]
-name = "samplenavigator2fdp"
+name = "meta2fdp"
 version = "0.1.0"
-description = "An in development package to build adapters between source systems and a FAIR Data Point to publish metadata stored in the source system."
-authors = [
-    {name = "kmpcremers",email = "kmpcremers@lumc.nl"}
-]
+description = "Adapters between source systems and a FAIR Data Point for publishing metadata."
 readme = "README.md"
-requires-python=">= 3.12"
-
-dependencies = [
-    "rdflib (>=7.1.4,<8.0.0)",
-    "pyparsing (>=3.2.3,<4.0.0)"
+authors = [
+    { name = "Karolis Cremers", email = "k.m.p.cremers@lumc.nl" },
+    { name = "Anna Niehues", email = "a.niehues@lumc.nl" }
 ]
+requires-python = ">=3.12"
+dependencies = [
+    "keyring>=25.7.0",
+    "pandas>=3.0.1",
+    "pre-commit>=4.5.1",
+    "pyyaml>=6.0.3",
+    "rdflib>=7.6.0",
+    "requests>=2.32.5",
+    "ruff>=0.15.1",
+    "sempyro>=2.1.0",
+]
+
+[project.scripts]
+meta2fdp = "meta2fdp:main"
 
 [build-system]
-requires = ["setuptools>=65.5.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-package-dir = {"" = "samplenavigator2fdp"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"

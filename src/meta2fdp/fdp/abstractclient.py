@@ -1,13 +1,14 @@
+"""Abstract client class for FDP interaction. This class defines the interface for all clients that interact with an FDP server. It contains abstract methods that must be implemented by any concrete client class that inherits from it. The methods include functions for checking connection status, getting API tokens, getting and posting resources, publishing resources, and updating resource graphs.
+"""
 from abc import ABCMeta, abstractmethod
 from rdflib import Graph, URIRef
-from os import getenv
 
 class AbstractClient(metaclass=ABCMeta):
 
     def __init__(self, config) -> None:
         self.config = config
-        
-    
+
+
     @abstractmethod
     def connection_status(self) -> int:
         """Basic function to check if connection to a FDP is possible
@@ -42,11 +43,11 @@ class AbstractClient(metaclass=ABCMeta):
         :rtype: str
         """
         # decision: always output str or Graph? should both options have a function?
-    
+
     @abstractmethod
     def post_resource(self, resource_ttl: str, resource_type: str) -> str:
         """Post a new resource description of a specific type to FDP.
-        
+
 
         :param resoure_ttl: A graph serialized in the ttl format
         :type resoure_ttl: str
@@ -56,7 +57,7 @@ class AbstractClient(metaclass=ABCMeta):
         :return: Location of the new resource on the FDP ie URL
         :rtype: str
         """
-    
+
     @abstractmethod
     def publish_resource(self, resource_url: URIRef):
         """Set the status of a resource metadata description to public
@@ -64,7 +65,7 @@ class AbstractClient(metaclass=ABCMeta):
         :param resource_url: URL to the target resource
         :type resource_url: URIRef
         """
-    
+
     @abstractmethod
     def put_resource(self, resource_ttl: Graph, resource_url: URIRef, resource_type: str):
         """Put completely new resource description of a specific type to an existing
@@ -81,7 +82,7 @@ class AbstractClient(metaclass=ABCMeta):
         :type resource_type: str
         """
 
-    
+
     def update_resource_graph(self, new_graph: Graph, resource_url: URIRef, resource_type: URIRef):
         # graph interaction and fdp interaction
         """
@@ -101,7 +102,7 @@ class AbstractClient(metaclass=ABCMeta):
         :return: updated FDP resource rdf graph
         :rtype: RDFLib Graph
         """
-    
+
 
     def get_dict_of_child_ids(self, resource_graph: Graph) -> dict:
         # graph interaction and fdp interaction

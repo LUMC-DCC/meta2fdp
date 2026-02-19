@@ -1,4 +1,4 @@
-name: samplenavigator2fdp
+name: meta2fdp
 channels:
   - conda-forge
 dependencies:
