@@ -21,6 +21,22 @@ Dependencies are specified in `envs/meta2fdp.yml`. See the [Mamba User Guide](ht
 ```{bash}
 mamba env create -f envs/meta2fdp.yml
 mamba activate meta2fdp
+uv sync
+```
+
+Creation of conda environment. See https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0
+
+```
+mamba create -n meta2fdp python=3.12
+mamba activate meta2fdp
+pip install uv
+conda env export --no-builds | grep -v "^prefix: " > envs/meta2fdp.yml
+```
+
+Installing Python packages with uv
+
+```
+uv add pandas
 ```
 
 ### Install meta2fdp package
