@@ -25,6 +25,10 @@ mamba activate meta2fdp               # activate conda environment
 uv sync                               # install Python dependencies with uv
 ```
 
+```
+pre-commit install
+```
+
 #### Notes on environment creation
 
 Below is the code that was used to create the conda environment from scratch. See [Using UV and Conda Together Effectively: A Fast, Flexible Workflow](https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0)
