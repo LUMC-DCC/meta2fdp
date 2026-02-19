@@ -1,37 +1,92 @@
 # Meta2FDP
 
-## description
-This is a project to make an adapter from Samplenavigator to the LUMC FDP, at the same time it is the current project that has active development into making a package for onboarding metadata on the Health-RI Metadata catalog. This package should be able to handle the most common input types and be able to transform the given metadata into RDF and publish it to the LUMC FDP. Current version is able to parse, csv, excel and direct mssql connections. Current implementations are primairely for catalog and dataset metadata as these are the mandatory classes within the [Health-RI Schema](https://github.com/Health-RI/health-ri-metadata). Note: LLS/mongodb implementation is currently not in this project as it was made for the v1 schema and has to be reworked to be properly integrated.
+`meta2fdp` is a Python package designed to automate the extraction, transformation, and publication of metadata to a FAIR Data Point (FDP) following the [Health‑RI Core Metadata Schema](https://github.com/Health-RI/health-ri-metadata). It enables programmatic onboarding of metadata from a variety of source systems to an FDP, making the process scalable, repeatable, and aligned with national FAIR metadata standards.
+
+## Purpose
+
+`meta2fdp` provides a structured way to build automated ETL pipelines that:
+
+* Extract information (metadata) from internal or external data source systems
+* Transform the metadata into RDF compliant with the Health‑RI schema
+* Publish (create or update) the metadata to an FDP instance
+
+The package reduces manual work, ensures schema compliance, and supports reuse of existing metadata already collected in systems such as Opal/Mica, SampleNavigator, SQL sources, and CSV or Excel files.
+
+## Key features
+
+* Source metadata ingestion with built-in parsers
+
+    * OBiBa Opal/Mica (MongoDB/SQL sources)
+    * SampleNavigator (SQL)
+    * Excel/CSV-based metadata templates
+
+* Schema‑aware transformation
+
+    * Uses the Health‑RI `SemPyRo` Pydantic classes to map source-system metadata into valid RDF resources.
+    * Ensures mandatory fields and schema structure are created correctly.
+
+* Automated metadata publishing to FDP
+
+    * Uploads new catalog and dataset metadata
+    * Updates existing FDP resources using identifiers
+    * Maintains relationships and resource links
+    * Applies SHACL validation via the FDP backend
+    * Minimizes manual editing after upload
+
 
 ## Installation
 
-### Install Mamba
+Installation of [conda/mamba](#how-to-install-conda-or-mamba) environment and Python package dependencies using `uv` package manager.
 
-Packages are managed using the cross-platform package manager [Mamba](https://mamba.readthedocs.io/en/latest/index.html). Mamba is compatible with [Conda](https://conda.io/projects/conda/en/latest/index.html) but generally [faster](https://conda.org/learn/faq/) at resolving dependencies. Mamba can be installed using a [Miniforge installer](https://github.com/conda-forge/miniforge).
+```{bash}
+# create conda environment from env file
+mamba env create -f envs/meta2fdp.yml
+
+# activate conda environment
+mamba activate meta2fdp
+
+# install meta2fdp and Python dependencies with uv
+uv sync
+
+# install missing packages with uv
+# uv add <package-name>
+```
+
+```
+# enable pre-commit hooks for linting and formatting
+pre-commit install
+```
+
+Submodules are used to deploy an FDP locally for testing. This requires **Docker**.
+
+```
+# initialize local configuration file for Git submodules and fetch data from projects
+git submodule init
+git submodule update
+```
+
+Make sure to have a keyring backend configured.
+
+#### How to install conda or mamba?
+
+Either conda or mamba can be used cross-platform package manager.
+
+[Mamba](https://mamba.readthedocs.io/en/latest/index.html) is compatible with [Conda](https://conda.io/projects/conda/en/latest/index.html) but generally [faster](https://conda.org/learn/faq/) at resolving dependencies. Mamba can be installed using a [Miniforge installer](https://github.com/conda-forge/miniforge).
 
 ```{bash}
 curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 bash Miniforge3-$(uname)-$(uname -m).sh
 ```
-Note: Mamba is a recommendation, as it is compatible with conda you can use conda as well.
 
-### Create and activate `conda`/`mamba` environment and install Python dependencies with `uv`
+## Development
 
-Dependencies are specified in `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. 
+### Environment
 
-```{bash}
-mamba env create -f envs/meta2fdp.yml # create conda environment from env file
-mamba activate meta2fdp               # activate conda environment
-uv sync                               # install Python dependencies with uv
-```
-
-```
-pre-commit install
-```
-
-#### Notes on environment creation
+Dependencies othe rthan Python packages are specified in the environment file `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. 
 
 Below is the code that was used to create the conda environment from scratch. See [Using UV and Conda Together Effectively: A Fast, Flexible Workflow](https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0)
+
+Python packages were installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
 
 ```
 mamba create -n meta2fdp python=3.12
@@ -40,27 +95,7 @@ pip install uv
 conda env export --no-builds | grep -v "^prefix: " > envs/meta2fdp.yml
 ```
 
-Python packages are installed with `uv`
-
-```
-uv add pandas
-```
-
-### Install meta2fdp package
-
-
-
-#### Install missing packages
-
-Do not use `pip` for installing missing Python packages. The preferred way to install them is `mamba`. To find the missing package, search [anaconda.org](https://anaconda.org/). The preferred installation channel is [conda-forge](https://anaconda.org/conda-forge/repo). Use `mamba install` to install a package into the activated environment. 
-
-Example: install [`pymongo`](https://anaconda.org/conda-forge/pymongo).
-
-```
-mamba install conda-forge::pymongo
-```
-
-Don't forget to add the newly installed package including its version to the dependencies in `envs/environment.yml`. Preferably, do not export the `environment.yml` file using `mamba env export`. If this is done anyways, use the `--from-history` flag to ensure cross-platform compatibility.
+<!--
 
 ## Running the pipeline
 
@@ -167,3 +202,5 @@ SHACL files that are used for integration testing are modified so all " symbols 
 
 ## Roadmap
 TODO
+
+-->
