@@ -6,6 +6,7 @@ This is a project to make an adapter from Samplenavigator to the LUMC FDP, at th
 ## Installation
 
 ### Install Mamba
+
 Packages are managed using the cross-platform package manager [Mamba](https://mamba.readthedocs.io/en/latest/index.html). Mamba is compatible with [Conda](https://conda.io/projects/conda/en/latest/index.html) but generally [faster](https://conda.org/learn/faq/) at resolving dependencies. Mamba can be installed using a [Miniforge installer](https://github.com/conda-forge/miniforge).
 
 ```{bash}
@@ -14,17 +15,19 @@ bash Miniforge3-$(uname)-$(uname -m).sh
 ```
 Note: Mamba is a recommendation, as it is compatible with conda you can use conda as well.
 
-### Create and activate `conda`/`mamba` environment
+### Create and activate `conda`/`mamba` environment and install Python dependencies with `uv`
 
-Dependencies are specified in `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. This is a minimum environment with only Python and the uv package manager created using `conda env export --no-builds --from-history > envs/meta2fdp.yml`.
+Dependencies are specified in `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. 
 
 ```{bash}
-mamba env create -f envs/meta2fdp.yml
-mamba activate meta2fdp
-uv sync
+mamba env create -f envs/meta2fdp.yml # create conda environment from env file
+mamba activate meta2fdp               # activate conda environment
+uv sync                               # install Python dependencies with uv
 ```
 
-Creation of conda environment. See https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0
+#### Notes on environment creation
+
+Below is the code that was used to create the conda environment from scratch. See [Using UV and Conda Together Effectively: A Fast, Flexible Workflow](https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0)
 
 ```
 mamba create -n meta2fdp python=3.12
@@ -33,7 +36,7 @@ pip install uv
 conda env export --no-builds | grep -v "^prefix: " > envs/meta2fdp.yml
 ```
 
-Installing Python packages with uv
+Python packages are installed with `uv`
 
 ```
 uv add pandas
