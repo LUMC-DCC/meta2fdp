@@ -143,9 +143,16 @@ def setup():
 
     # set up token secrets environment for ephemeral usecase:
     status_code = 0
-    while status_code != 200:
+    tries = 0
+    while status_code != 200 and tries < 40:
+        tries +=1
         response = requests.get(FDP_BASE_URL)
         status_code = response.status_code
+        if status_code != 200:
+            print(f"FDP not ready yet, status code: {status_code}. Retrying in 1 seconds...")
+            time.sleep(1)
+    if status_code != 200:
+        raise Exception("FDP server did not start within the expected time.")
     token = get_apikey()
     #keyring.delete_password(FDP_BASE_URL,EMAIL)
     keyring.set_password(FDP_BASE_URL,EMAIL, token)
