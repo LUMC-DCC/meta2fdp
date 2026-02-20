@@ -179,9 +179,7 @@ def setup():
     os.environ["FDP_VERSION"] = FDP_BASE_VERSION
 
     # Step 2: Run Docker Compose to start FDP ephemeral server
-    compose_dir = Path(
-        "tests/test_integration/compose/fdp/ephemeral/v1"
-    )  # Update this path
+    compose_dir = Path("tests/external/compose/fdp/ephemeral/v1")  # Update this path
     subprocess.run(["docker", "compose", "up", "-d"], cwd=compose_dir)
 
     # set up token secrets environment for ephemeral usecase:
@@ -227,7 +225,7 @@ def teardown(compose_dir):
 
 
 if __name__ == "__main__":
-    compose_dir = Path("tests/test_integration/compose/fdp/ephemeral/v1")
+    compose_dir = Path("tests/external/compose/fdp/ephemeral/v1")
     teardown(compose_dir)
     # subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
     setup()

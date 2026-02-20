@@ -41,7 +41,7 @@ class CSVPipelinetests(unittest.TestCase):
     def tearDown(self):
         subprocess.run(
             ["docker", "compose", "down"],
-            cwd=Path("tests/test_integration/compose/fdp/ephemeral/v1"),
+            cwd=Path("tests/external/compose/fdp/ephemeral/v1"),
         )
         # cleanup env var set by build_fdp.setup() to avoid cross-test pollution
         try:
