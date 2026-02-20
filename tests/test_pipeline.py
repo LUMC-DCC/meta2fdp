@@ -25,7 +25,7 @@ class CSVPipelinetests(unittest.TestCase):
     ) -> None:
         self.config = self.parse_yaml(Path("tests/data/config/configuration_csv.yaml"))
         self.default_values = self.parse_yaml(
-            Path("tests/data/config/model_config.yaml")
+            Path("tests/data/config/model_config_test.yaml")
         )
         super().__init__(methodName)
         self.client = Client(self.config)

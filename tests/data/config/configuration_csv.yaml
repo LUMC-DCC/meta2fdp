@@ -3,9 +3,9 @@ mode:
   publish: True
 
 FDP: # labels of environment variables containing secrets:
-  URL: null
-  username: null
-  parent_resource_purl: null
+  URL: nephemeralFDPl
+  username: ephemeralFDPusername
+  parent_resource_purl: parent_resource_purl
 
 file_paths: # settings for running the main inside src:
   catalog_input_file: tests/data/input/Health-RI_LUMC_catalogue.csv
