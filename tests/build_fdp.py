@@ -189,7 +189,12 @@ def setup():
     tries = 0
     while status_code != 200 and tries < 40:
         tries += 1
-        response = requests.get(FDP_BASE_URL)
+        try:
+            response = requests.get(FDP_BASE_URL)
+        except requests.exceptions.ConnectionError:
+            print("FDP server not ready yet. Retrying in 1 seconds...")
+            time.sleep(1)
+            continue
         status_code = response.status_code
         if status_code != 200:
             print(
