@@ -7,6 +7,7 @@ import time
 import keyring
 import yaml
 import sys
+import pytest
 
 FDP_BASE_URL = "http://localhost"
 FDP_BASE_VERSION = "1.18.1"
@@ -31,8 +32,6 @@ def parse_config(conf_path):
         print(f"Error parsing YAML configuration file: {e}")
         sys.exit(1)
 
-
-config = parse_config(config_path)
 
 # Step 1: Authenticate and get token
 
@@ -172,7 +171,7 @@ def update_schema(schemas, token, resource):
 
 
 # Main execution
-def setup():
+def setup(config=None):
     # Step 1: Set environment variables
     # TODO make a config
     os.environ["FDP_CLIENT_VERSION"] = FDP_BASE_VERSION
@@ -214,12 +213,37 @@ def setup():
     update_schema(schemas, token, "Dataset")
 
 
-def teardown(compose_dir):
-    subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
-    # cleanup env var set by build_fdp.setup() to avoid cross-test pollution
+@pytest.fixture(scope="session")
+def fdp_server(config):
+    """Start an ephemeral FDP server for the test session and yield control.
+
+    This fixture wraps the existing `setup()` and `teardown()` helpers and
+    uses the `config` fixture to set environment variables.
+    """
+    compose_dir = Path("tests/external/compose/fdp/ephemeral/v1")
+    setup(config=config)
     try:
-        if FDP_BASE_URL in os.environ:
-            del os.environ[FDP_BASE_URL]
+        yield
+    finally:
+        teardown(compose_dir, config=config)
+
+
+def teardown(compose_dir, config=None):
+    subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
+    # cleanup env vars and keyring set by build_fdp.setup() to avoid cross-test pollution
+    try:
+        if config:
+            env_key = config["FDP"]["URL"]
+            username_key = config["FDP"]["username"]
+            if env_key in os.environ:
+                del os.environ[env_key]
+            if username_key in os.environ:
+                del os.environ[username_key]
+        # remove any API token saved in keyring for the FDP base URL
+        try:
+            keyring.delete_password(FDP_BASE_URL, EMAIL)
+        except Exception:
+            pass
     except Exception:
         pass
 
