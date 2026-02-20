@@ -8,7 +8,7 @@ from pathlib import Path
 from rdflib import URIRef
 from tests import build_fdp
 from meta2fdp.parsers.csvparser import CSVParser as Parser
-from meta2fdp.converters.hriv2model import Hriv2Model as Model
+from meta2fdp.schemas.hriv2model import Hriv2Model as Model
 from meta2fdp.fdp.FDPClient import FDPClient as Client
 
 
@@ -23,10 +23,10 @@ class CSVPipelinetests(unittest.TestCase):
         self,
         methodName: str = "runTest",
     ) -> None:
-        self.config = self.parse_yaml(
-            Path("tests/test_files/test_configs/configuration_csv.yaml")
+        self.config = self.parse_yaml(Path("tests/data/config/configuration_csv.yaml"))
+        self.default_values = self.parse_yaml(
+            Path("tests/data/config/model_config.yaml")
         )
-        self.default_values = self.parse_yaml(Path("config/model_config.yaml"))
         super().__init__(methodName)
         self.client = Client(self.config)
 

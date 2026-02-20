@@ -14,7 +14,7 @@ EMAIL = "albert.einstein@example.com"
 PASSWORD = "password"
 verbose = True
 
-config_path = Path("tests/test_files/test_configs/configuration_csv.yaml")
+config_path = Path("tests/data/config/configuration_csv.yaml")
 
 
 def parse_config(conf_path):
@@ -142,7 +142,7 @@ def update_schema(schemas, token, resource):
         schema_uuid, context = resource_schemas[0]
 
         status, message = post_schema(
-            schema_uuid, token, f"tests/test_files/SHACL/{resource}.ttl", context
+            schema_uuid, token, f"tests/data/schema/{resource}.ttl", context
         )
         if __debug__:
             print(status)
@@ -187,7 +187,7 @@ def setup():
     os.environ[config["FDP"]["URL"]] = FDP_BASE_URL
     os.environ[config["FDP"]["username"]] = EMAIL
 
-    # update schemas to the ones in the folder tests\test_files\SHACL
+    # update schemas to the ones in the folder tests\data\schema
     schemas = get_schemas(token)
     update_schema(schemas, token, "Resource")
     update_schema(schemas, token, "Catalog")
