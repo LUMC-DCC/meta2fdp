@@ -1,4 +1,3 @@
-import yaml
 import pytest
 import pandas as pd
 from rdflib import URIRef, Graph
@@ -6,16 +5,9 @@ from sempyro import LiteralField, hri_dcat
 from meta2fdp.schemas.hriv2schema import Hriv2Schema as Schema
 
 
-@pytest.fixture(scope="module")
-def config(data_dir):
-    conf_path = data_dir / "config" / "model_config_test.yaml"
-    with open(conf_path, "r") as config_file:
-        return yaml.safe_load(config_file)
-
-
 @pytest.fixture
-def schema(config):
-    return Schema(config)
+def schema(model_config):
+    return Schema(model_config)
 
 
 def test_lang_literals(schema):

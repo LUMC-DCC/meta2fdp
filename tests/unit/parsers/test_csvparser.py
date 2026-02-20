@@ -16,29 +16,6 @@ def parse_config(conf_path: Path):
         raise RuntimeError(f"Error parsing YAML configuration: {e}") from e
 
 
-@pytest.fixture(scope="module")
-def config(data_dir):
-    # tests are located in tests/parsers, test data lives in tests/data
-    conf_path = data_dir / "config" / "configuration_csv.yaml"
-    try:
-        cfg = parse_config(conf_path)
-    except FileNotFoundError:
-        pytest.skip(f"Test configuration not found: {conf_path}")
-    except RuntimeError as e:
-        pytest.skip(str(e))
-
-    # Normalize file paths to pathlib.Path
-    file_paths = {}
-    for k, v in (cfg.get("file_paths") or {}).items():
-        if v is None:
-            file_paths[k] = None
-            continue
-        p = Path(v)
-        file_paths[k] = p
-    cfg["file_paths"] = file_paths
-    return cfg
-
-
 @pytest.fixture
 def parser(config):
     return CSVParser(config)

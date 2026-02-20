@@ -15,8 +15,6 @@ EMAIL = "albert.einstein@example.com"
 PASSWORD = "password"
 verbose = True
 
-config_path = Path("tests/data/config/configuration_csv.yaml")
-
 
 def parse_config(conf_path):
     try:

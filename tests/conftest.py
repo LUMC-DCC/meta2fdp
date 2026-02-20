@@ -16,11 +16,26 @@ def data_dir(request) -> Path:
 
 
 @pytest.fixture(scope="session")
-def config(data_dir):
+def config_path(data_dir) -> Path:
+    return data_dir / "config" / "configuration_csv.yaml"
+
+
+@pytest.fixture(scope="session")
+def config(config_path):
     import yaml
 
-    with open(data_dir / "config" / "configuration_csv.yaml", "r") as fh:
-        return yaml.safe_load(fh)
+    with open(config_path, "r") as fh:
+        # TODO: this should be part of src utils, and handle all config files, not just the one for csvparser tests
+        cfg = yaml.safe_load(fh)
+        file_paths = {}
+        for k, v in (cfg.get("file_paths") or {}).items():
+            if v is None:
+                file_paths[k] = None
+                continue
+            p = Path(v)
+            file_paths[k] = p
+        cfg["file_paths"] = file_paths
+        return cfg
 
 
 @pytest.fixture(scope="session")
