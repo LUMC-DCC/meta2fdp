@@ -22,7 +22,7 @@ from sempyro.hri_dcat import (
 # mappping files are per resource
 
 
-class AbstractModel(metaclass=ABCMeta):
+class AbstractSchema(metaclass=ABCMeta):
     def __init__(self, default_values: dict) -> None:
         # example properties for default values:
         self.default_values = None

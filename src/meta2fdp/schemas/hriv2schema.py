@@ -1,7 +1,7 @@
 import pandas as pd
 from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
-from meta2fdp.schemas.abstractmodel import AbstractModel
+from meta2fdp.schemas.abstractschema import AbstractSchema
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog,
@@ -11,12 +11,12 @@ from sempyro.hri_dcat import (
 )
 
 
-class Hriv2Schema(AbstractModel):
-    def __init__(self, model_config) -> None:
-        self.model_config = model_config
+class Hriv2Schema(AbstractSchema):
+    def __init__(self, schema_config) -> None:
+        self.schema_config = schema_config
 
-    def set_model_config(self, model_config: dict) -> None:
-        self.model_config = model_config
+    def set_schema_config(self, schema_config: dict) -> None:
+        self.schema_config = schema_config
 
     def convert_class_to_rdf(self, HRIresource: DCATResource, uri: URIRef) -> Graph:
         return HRIresource.to_graph(uri)
@@ -32,7 +32,7 @@ class Hriv2Schema(AbstractModel):
         :type metadata: pd.Series
         :param colname: colname of the literal property
         :type colname: str
-        :return: A list of literals in the form of a SeMPyRO model
+        :return: A list of literals in the form of a SeMPyRO schema
         :rtype: list[LiteralField]
         """
         properties = []
@@ -40,7 +40,7 @@ class Hriv2Schema(AbstractModel):
             nolang_literal = LiteralField(value=metadata.loc[colname])
             properties.append(nolang_literal)
         else:
-            for langtag in self.model_config["langtags"].split(","):
+            for langtag in self.schema_config["langtags"].split(","):
                 property_colname = colname + "_" + langtag
                 if property_colname in metadata.index:
                     langtagged_literal = LiteralField(
