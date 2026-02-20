@@ -21,7 +21,7 @@ def parse_config(conf_path: Path):
 @pytest.fixture(scope="module")
 def config():
     # tests are located in tests/parsers, test data lives in tests/data
-    conf_path = BASE_DIR.parent / "data" / "test_configs" / "configuration_csv.yaml"
+    conf_path = BASE_DIR.parent / "data" / "config" / "configuration_csv.yaml"
     try:
         cfg = parse_config(conf_path)
     except FileNotFoundError:
