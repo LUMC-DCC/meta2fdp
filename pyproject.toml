@@ -34,10 +34,5 @@ testpaths = [
 ]
 addopts = [
     "-ra",
-    "--strict-markers",
-]
-marker = [
-    "integration: marks tests as integration tests",
-    "unit: marks unit tests",
 ]
 norecursedirs = ["external", "__pycache__"]
