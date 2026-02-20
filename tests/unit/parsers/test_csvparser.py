@@ -5,8 +5,6 @@ from pathlib import Path
 from pandas import DataFrame, read_csv
 from meta2fdp.parsers.csvparser import CSVParser
 
-BASE_DIR = Path(__file__).resolve().parent
-
 
 def parse_config(conf_path: Path):
     try:
@@ -19,9 +17,9 @@ def parse_config(conf_path: Path):
 
 
 @pytest.fixture(scope="module")
-def config():
+def config(data_dir):
     # tests are located in tests/parsers, test data lives in tests/data
-    conf_path = BASE_DIR.parent / "data" / "config" / "configuration_csv.yaml"
+    conf_path = data_dir / "config" / "configuration_csv.yaml"
     try:
         cfg = parse_config(conf_path)
     except FileNotFoundError:
@@ -78,7 +76,7 @@ def test_parse_distribution(parser, config):
 def test_parse_catalog_raises_when_file_missing(config):
     cfg = deepcopy(config)
     # use a Path object guaranteed not to exist
-    cfg["file_paths"]["catalog_input_file"] = BASE_DIR / "no_such_file.csv"
+    cfg["file_paths"]["catalog_input_file"] = "no_such_file.csv"
     parser = CSVParser(cfg)
     with pytest.raises(FileNotFoundError):
         parser.parse_catalog()
