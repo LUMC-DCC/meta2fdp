@@ -26,3 +26,18 @@ meta2fdp = "meta2fdp:main"
 [build-system]
 requires = ["uv_build>=0.10.4,<0.11.0"]
 build-backend = "uv_build"
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = [
+    "tests",
+]
+addopts = [
+    "-ra",
+    "--strict-markers",
+]
+marker = [
+    "integration: marks tests as integration tests",
+    "unit: marks unit tests",
+]
+norecursedirs = ["external", "__pycache__"]
