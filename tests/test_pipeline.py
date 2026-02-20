@@ -8,7 +8,7 @@ from pathlib import Path
 from rdflib import URIRef
 from tests import build_fdp
 from meta2fdp.parsers.csvparser import CSVParser as Parser
-from meta2fdp.schemas.hriv2model import Hriv2Model as Model
+from meta2fdp.schemas.hriv2schema import Hriv2Schema as Schema
 from meta2fdp.fdp.FDPClient import FDPClient as Client
 
 
@@ -57,7 +57,7 @@ class CSVPipelinetests(unittest.TestCase):
         """An abstract example pipeline that shows the minimum script for uploading content from a csv source"""
 
         parser = Parser(config=self.config)  # abstract parser
-        converter = Model(self.default_values)  # abstract converter
+        converter = Schema(self.default_values)  # abstract converter
 
         self.client.get_api_token()
         if self.client.connection_status() == 200:

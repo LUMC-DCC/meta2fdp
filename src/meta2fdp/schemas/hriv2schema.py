@@ -11,7 +11,7 @@ from sempyro.hri_dcat import (
 )
 
 
-class Hriv2Model(AbstractModel):
+class Hriv2Schema(AbstractModel):
     def __init__(self, model_config) -> None:
         self.model_config = model_config
 
