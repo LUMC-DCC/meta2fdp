@@ -43,7 +43,17 @@ def get_apikey():
         data=json.dumps({"email": EMAIL, "password": PASSWORD}),
         headers={"Accept": "application/json", "Content-Type": "application/json"},
     )
-    return set_apikey(response.json()["token"])
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"Failed to obtain token from {FDP_BASE_URL}/tokens: {response.status_code} {response.text}"
+        )
+    try:
+        token = response.json().get("token")
+    except ValueError:
+        raise RuntimeError("Invalid JSON response when obtaining token")
+    if not token:
+        raise RuntimeError(f"No token found in response: {response.text}")
+    return set_apikey(token)
 
 
 def set_apikey(token):
@@ -56,7 +66,14 @@ def set_apikey(token):
             "Authorization": f"Bearer {token}",
         },
     )
-    return response.json()["token"]
+    if response.status_code not in (200, 201):
+        raise RuntimeError(
+            f"Failed to create API key at {FDP_BASE_URL}/api-keys: {response.status_code} {response.text}"
+        )
+    try:
+        return response.json()["token"]
+    except Exception:
+        raise RuntimeError(f"No token returned when creating API key: {response.text}")
 
 
 # Step 2: Get all metadata schemas
@@ -196,6 +213,12 @@ def setup():
 
 def teardown(compose_dir):
     subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
+    # cleanup env var set by build_fdp.setup() to avoid cross-test pollution
+    try:
+        if FDP_BASE_URL in os.environ:
+            del os.environ[FDP_BASE_URL]
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":

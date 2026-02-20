@@ -1,6 +1,7 @@
 """Integration test of the CSV version of a pipeline made with the package"""
 
 import sys
+import os
 import unittest
 import subprocess
 import yaml
@@ -28,16 +29,25 @@ class CSVPipelinetests(unittest.TestCase):
             Path("tests/data/config/model_config_test.yaml")
         )
         super().__init__(methodName)
-        self.client = Client(self.config)
+        self.client = None
 
     def setUp(self):
         build_fdp.setup()
+        # create client after environment and keyring have been prepared
+        self.client = Client(self.config)
 
     def tearDown(self):
         subprocess.run(
             ["docker", "compose", "down"],
             cwd=Path("tests/test_integration/compose/fdp/ephemeral/v1"),
         )
+        # cleanup env var set by build_fdp.setup() to avoid cross-test pollution
+        try:
+            env_key = self.config["FDP"]["URL"]
+            if env_key in os.environ:
+                del os.environ[env_key]
+        except Exception:
+            pass
 
     def parse_yaml(self, conf_path):
         try:
