@@ -1,3 +1,5 @@
+"""This module contains the implementation of the HRIV2Schema class, which is a specific schema for converting metadata into RDF format using the SeMPyRO library. The class provides methods for instantiating various SeMPyRO classes such as HRICatalog, HRIDataset, HRIVCard, and HRIAgent based on the provided metadata. It also includes a method for converting these classes into RDF graphs. The schema configuration can be set and updated as needed."""
+
 import pandas as pd
 from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
