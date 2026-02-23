@@ -1,3 +1,3 @@
-[submodule "tests/external/compose"]
+[submodule "docker/compose"]
 	path = docker/compose
 	url = https://github.com/FAIRDataTeam/compose.git

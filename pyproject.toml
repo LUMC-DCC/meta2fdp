@@ -35,4 +35,4 @@ testpaths = [
 addopts = [
     "-ra",
 ]
-norecursedirs = ["external", "__pycache__"]
+norecursedirs = ["__pycache__"]

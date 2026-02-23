@@ -176,7 +176,7 @@ def setup(config=None):
     os.environ["FDP_VERSION"] = FDP_BASE_VERSION
 
     # Step 2: Run Docker Compose to start FDP ephemeral server
-    compose_dir = Path("tests/external/compose/fdp/ephemeral/v1")  # Update this path
+    compose_dir = Path("docker/compose/fdp/ephemeral/v1")  # Update this path
     subprocess.run(["docker", "compose", "up", "-d"], cwd=compose_dir)
 
     # set up token secrets environment for ephemeral usecase:
@@ -218,7 +218,7 @@ def fdp_server(config):
     This fixture wraps the existing `setup()` and `teardown()` helpers and
     uses the `config` fixture to set environment variables.
     """
-    compose_dir = Path("tests/external/compose/fdp/ephemeral/v1")
+    compose_dir = Path("docker/compose/fdp/ephemeral/v1")
     setup(config=config)
     try:
         yield
@@ -247,7 +247,7 @@ def teardown(compose_dir, config=None):
 
 
 if __name__ == "__main__":
-    compose_dir = Path("tests/external/compose/fdp/ephemeral/v1")
+    compose_dir = Path("docker/compose/fdp/ephemeral/v1")
     teardown(compose_dir)
     # subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
     setup()
