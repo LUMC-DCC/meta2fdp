@@ -5,44 +5,25 @@ import json
 import subprocess
 import time
 import keyring
-import yaml
-import sys
 import pytest
 
-FDP_BASE_URL = "http://localhost"
-FDP_BASE_VERSION = "1.18.1"
-EMAIL = "albert.einstein@example.com"
-PASSWORD = "password"
+
 verbose = True
 
 
-def parse_config(conf_path):
-    try:
-        with open(conf_path, "r") as config_file:
-            config = yaml.safe_load(
-                config_file
-            )  # used to obtain right value types from the yaml like booleans
-            return config
-    except FileNotFoundError:
-        print(f"Configuration file not found: {conf_path}")
-        sys.exit(1)
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML configuration file: {e}")
-        sys.exit(1)
-
-
 # Step 1: Authenticate and get token
-
-
 def get_apikey():
+    """Obtain an API key for the FDP server using credentials from environment variables."""
     response = requests.post(
-        f"{FDP_BASE_URL}/tokens",
-        data=json.dumps({"email": EMAIL, "password": PASSWORD}),
+        f"{os.environ['FDP_BASE_URL']}/tokens",
+        data=json.dumps(
+            {"email": os.environ["FDP_EMAIL"], "password": os.environ["FDP_PASSWORD"]}
+        ),
         headers={"Accept": "application/json", "Content-Type": "application/json"},
     )
     if response.status_code != 200:
         raise RuntimeError(
-            f"Failed to obtain token from {FDP_BASE_URL}/tokens: {response.status_code} {response.text}"
+            f"Failed to obtain token from {os.environ['FDP_BASE_URL']}/tokens: {response.status_code} {response.text}"
         )
     try:
         token = response.json().get("token")
@@ -54,8 +35,9 @@ def get_apikey():
 
 
 def set_apikey(token):
+    """Store the obtained API key in the FDP system keyring for later retrieval."""
     response = requests.post(
-        f"{FDP_BASE_URL}/api-keys",
+        f"{os.environ['FDP_BASE_URL']}/api-keys",
         json={},
         headers={
             "Accept": "application/json",
@@ -65,7 +47,7 @@ def set_apikey(token):
     )
     if response.status_code not in (200, 201):
         raise RuntimeError(
-            f"Failed to create API key at {FDP_BASE_URL}/api-keys: {response.status_code} {response.text}"
+            f"Failed to create API key at {os.environ['FDP_BASE_URL']}/api-keys: {response.status_code} {response.text}"
         )
     try:
         return response.json()["token"]
@@ -75,8 +57,9 @@ def set_apikey(token):
 
 # Step 2: Get all metadata schemas
 def get_schemas(token):
+    """Retrieve all metadata schemas from the FDP server using the provided API token."""
     response = requests.get(
-        f"{FDP_BASE_URL}/metadata-schemas",
+        f"{os.environ['FDP_BASE_URL']}/metadata-schemas",
         headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
     )
     return response.json()
@@ -84,6 +67,7 @@ def get_schemas(token):
 
 # Step 3: Parse schema definitions to find UUIDs linked to resource types
 def extract_schema_uuids(schemas, target_type="dcat:Catalog"):
+    """Extract UUIDs of metadata schemas that are relevant to the specified target resource type."""
     matches = []
 
     for schema in schemas:
@@ -100,6 +84,7 @@ def extract_schema_uuids(schemas, target_type="dcat:Catalog"):
 
 # Step 4: Update schema using SHACL file
 def post_schema(uuid, token, shacl_file_path, context):
+    """Post an updated metadata schema to the FDP server using the provided SHACL file and context."""
     with open(shacl_file_path, "r") as f:
         shacl_data = f.read()
 
@@ -117,7 +102,7 @@ def post_schema(uuid, token, shacl_file_path, context):
     )
 
     response = requests.put(
-        f"{FDP_BASE_URL}/metadata-schemas/{uuid}/draft",
+        f"{os.environ['FDP_BASE_URL']}/metadata-schemas/{uuid}/draft",
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
@@ -129,12 +114,12 @@ def post_schema(uuid, token, shacl_file_path, context):
 
 
 def publish_schema(uuid, token, version, desc):
-
+    """Publish the updated metadata schema on the FDP server with the specified version and description."""
     body = json.dumps(
         {"version": f"{version}", "description": f"{desc}", "published": True}
     )
     response = requests.post(
-        f"{FDP_BASE_URL}/metadata-schemas/{uuid}/versions",
+        f"{os.environ['FDP_BASE_URL']}/metadata-schemas/{uuid}/versions",
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
@@ -149,6 +134,7 @@ def publish_schema(uuid, token, version, desc):
 
 
 def update_schema(schemas, token, resource):
+    """Find the schema UUID for the given resource type and update it using the corresponding SHACL file."""
     resource_schemas = extract_schema_uuids(
         schemas, f"http://www.w3.org/ns/dcat#{resource}"
     )
@@ -169,25 +155,27 @@ def update_schema(schemas, token, resource):
 
 
 # Main execution
-def setup(config=None):
+def setup(compose_dir=None, config=None):
+    """Set up the environment by starting the FDP server, obtaining API tokens, and updating schemas."""
     # Step 1: Set environment variables
-    # TODO make a config
-    os.environ["FDP_CLIENT_VERSION"] = FDP_BASE_VERSION
-    os.environ["FDP_VERSION"] = FDP_BASE_VERSION
+    # use .env.test file for env vars related to the ephemeral FDP server setup
+    os.environ["FDP_CLIENT_VERSION"] = os.environ["FDP_BASE_VERSION"]
+    os.environ["FDP_VERSION"] = os.environ["FDP_BASE_VERSION"]
 
     # Step 2: Run Docker Compose to start FDP ephemeral server
-    compose_dir = Path("docker/compose/fdp/ephemeral/v1")  # Update this path
     subprocess.run(["docker", "compose", "up", "-d"], cwd=compose_dir)
 
     # set up token secrets environment for ephemeral usecase:
     status_code = 0
     tries = 0
-    while status_code != 200 and tries < 40:
+    max_tries = int(
+        os.environ.get("FDP_START_TIMEOUT", 40)
+    )  # Default to 40 seconds if not set
+    while status_code != 200 and tries < max_tries:
         tries += 1
         try:
-            response = requests.get(FDP_BASE_URL)
+            response = requests.get(os.environ["FDP_BASE_URL"])
         except requests.exceptions.ConnectionError:
-            print("FDP server not ready yet. Retrying in 1 seconds...")
             time.sleep(1)
             continue
         status_code = response.status_code
@@ -200,9 +188,9 @@ def setup(config=None):
         raise Exception("FDP server did not start within the expected time.")
     token = get_apikey()
     # keyring.delete_password(FDP_BASE_URL,EMAIL)
-    keyring.set_password(FDP_BASE_URL, EMAIL, token)
-    os.environ[config["FDP"]["URL"]] = FDP_BASE_URL
-    os.environ[config["FDP"]["username"]] = EMAIL
+    keyring.set_password(os.environ["FDP_BASE_URL"], os.environ["FDP_EMAIL"], token)
+    os.environ[config["FDP"]["URL"]] = os.environ["FDP_BASE_URL"]
+    os.environ[config["FDP"]["username"]] = os.environ["FDP_EMAIL"]
 
     # update schemas to the ones in the folder tests\data\schema
     schemas = get_schemas(token)
@@ -211,22 +199,8 @@ def setup(config=None):
     update_schema(schemas, token, "Dataset")
 
 
-@pytest.fixture(scope="session")
-def fdp_server(config):
-    """Start an ephemeral FDP server for the test session and yield control.
-
-    This fixture wraps the existing `setup()` and `teardown()` helpers and
-    uses the `config` fixture to set environment variables.
-    """
-    compose_dir = Path("docker/compose/fdp/ephemeral/v1")
-    setup(config=config)
-    try:
-        yield
-    finally:
-        teardown(compose_dir, config=config)
-
-
 def teardown(compose_dir, config=None):
+    """Tear down the environment by stopping the FDP server and cleaning up environment variables and keyring entries."""
     subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
     # cleanup env vars and keyring set by build_fdp.setup() to avoid cross-test pollution
     try:
@@ -239,15 +213,24 @@ def teardown(compose_dir, config=None):
                 del os.environ[username_key]
         # remove any API token saved in keyring for the FDP base URL
         try:
-            keyring.delete_password(FDP_BASE_URL, EMAIL)
+            keyring.delete_password(os.environ["FDP_BASE_URL"], os.environ["FDP_EMAIL"])
         except Exception:
             pass
     except Exception:
         pass
 
 
-if __name__ == "__main__":
-    compose_dir = Path("docker/compose/fdp/ephemeral/v1")
-    teardown(compose_dir)
-    # subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
-    setup()
+@pytest.fixture(scope="session")
+def fdp_server(config):
+    """Start an ephemeral FDP server for the test session and yield control.
+
+    This fixture wraps the existing `setup()` and `teardown()` helpers and
+    uses the `config` fixture to set environment variables.
+    """
+    compose_dir = Path(os.environ["FDP_COMPOSE_PATH"]).resolve()
+
+    setup(config=config, compose_dir=compose_dir)
+    try:
+        yield
+    finally:
+        teardown(compose_dir, config=config)

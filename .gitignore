@@ -6,3 +6,7 @@ __pycache__/
 
 # VSCode
 .vscode
+
+# Environment variables
+.env
+tests/.env.test.local

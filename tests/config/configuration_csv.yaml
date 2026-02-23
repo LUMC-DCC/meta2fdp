@@ -3,7 +3,7 @@ mode:
   publish: True
 
 FDP: # labels of environment variables containing secrets:
-  URL: nephemeralFDPl
+  URL: ephemeralFDP
   username: ephemeralFDPusername
   parent_resource_purl: parent_resource_purl
 

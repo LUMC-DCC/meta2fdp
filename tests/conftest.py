@@ -1,32 +1,37 @@
-from pathlib import Path
+"""Pytest fixtures for testing the meta2fdp package."""
+
 import pytest
-# import sys
+from dotenv import load_dotenv
+from pathlib import Path
 
 
-# BASE_DIR = Path(__file__).resolve().parent
-
-# facilitate running tests from command line using `python -m unittest`
-# sys.path.append(str(BASE_DIR.parent / 'src'))
+def pytest_configure():
+    """Load environment variables from the .env.test file before any tests are run."""
+    load_dotenv(dotenv_path=Path(__file__).parent / ".env.test")
 
 
 @pytest.fixture(scope="session")
 def test_dir(request) -> Path:
+    """Return the path to the tests directory."""
     tests_root = Path(request.config.rootpath) / "tests"
     return tests_root
 
 
 @pytest.fixture(scope="session")
 def data_dir(test_dir) -> Path:
+    """Return the path to the tests/data directory."""
     return test_dir / "data"
 
 
 @pytest.fixture(scope="session")
 def config_path(test_dir) -> Path:
+    """Return the path to the configuration YAML file for the CSV parser tests."""
     return test_dir / "config" / "configuration_csv.yaml"
 
 
 @pytest.fixture(scope="session")
 def config(config_path):
+    """Load the configuration from the YAML file and return it as a dictionary."""
     import yaml
 
     with open(config_path, "r") as fh:
@@ -45,6 +50,7 @@ def config(config_path):
 
 @pytest.fixture(scope="session")
 def model_config(test_dir):
+    """Load the model/schema configuration from the YAML file and return it as a dictionary."""
     import yaml
 
     with open(test_dir / "config" / "model_config_test.yaml", "r") as fh:
