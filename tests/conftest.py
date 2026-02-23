@@ -10,14 +10,19 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def data_dir(request) -> Path:
+def test_dir(request) -> Path:
     tests_root = Path(request.config.rootpath) / "tests"
-    return tests_root / "data"
+    return tests_root
 
 
 @pytest.fixture(scope="session")
-def config_path(data_dir) -> Path:
-    return data_dir / "config" / "configuration_csv.yaml"
+def data_dir(test_dir) -> Path:
+    return test_dir / "data"
+
+
+@pytest.fixture(scope="session")
+def config_path(test_dir) -> Path:
+    return test_dir / "config" / "configuration_csv.yaml"
 
 
 @pytest.fixture(scope="session")
@@ -39,8 +44,8 @@ def config(config_path):
 
 
 @pytest.fixture(scope="session")
-def model_config(data_dir):
+def model_config(test_dir):
     import yaml
 
-    with open(data_dir / "config" / "model_config_test.yaml", "r") as fh:
+    with open(test_dir / "config" / "model_config_test.yaml", "r") as fh:
         return yaml.safe_load(fh)
