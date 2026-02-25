@@ -57,11 +57,52 @@ meta2fdp/
 │     │
 │     ├─ __init__.py
 │     │
-│     ├─ config/                    # Configuration models & defaults
+│     ├─ config/                    # Configuration of models & defaults; typed with Pydantic
+│     │  ├─ connector.py
+│     │  ├─ schema.py
+│     │  └─ etc.
+# TODO: create config/ modules - connector type, schema version, profiles, FDP endpoint, pipeline options; don't mix config logic with business logic
+# TODO: add configuration registry
 │     │
-│     ├─ models/                    # Core domain models (clean & independent)
-│     │    ├─ base.py               # Abstract model
-│
+│     ├─ connectors/
+# TODO: create base class connector; create different connectors for sqlserver, mongodb, csv etc.; this does not handle the content, it only establishes the connection; handle opening of connections, authentication, closing connection
+# should also retrieve information from source system, but logically separate establishing connection and reading information
+# base connector defines connect, extract, clode/cleanup; subclassess for SQL, RESTAPI, ; the subclass for specific databases
+│     ├─ extractors/
+# TODO: decide whether to combines or separate connector and extractor/reader/parser
+│     │
+│     ├─ models/                    # Core domain models (clean & independent), pure Pydantic
+│     │  ├─ base.py               # Abstract model - base class for metadata record
+│     │  └─ HRIcore/              # Keep different schemas separate
+│     │     └─ v2/                # Keep different versions separate
+│     │        └─ dataset.py
+# TODO: this should not contain functionality related to RDF serialization; it should only represent the data structures for schema validation; move serialization of models to rdf/serializers/ module per schema and version - this makes models/ independent of rdflib;
+# TODO: add models/registry.py to register the differnt schemas/versions (important in future) (started);
+# TODO: separate classes/concepts dataset, catalog, distribution etc.; - this might jus be imports from Sempyro; name the classes in a uniform way, so that schemas can be replaced easily
+# TODO: base class should only enforce common behaviour; is currently schema-specific
+# TODO: add default profiles
+# don't reference connectors, pipelines, clients inside models
+│     │
+│     ├─ transformers/           # Pydantic model --> Graph
+# TODO: implement a metadata adapter / schema handler that validates record and serializes to rdf; the current implementation resembles an adapter but mixed with the model; transformers are schema-specific; inject information form default profiles
+│     │
+│     ├─ validation/ # for additional business / semantic validation (in addition to strcutural validation through Pydantic classes)
+│     │
+│     ├─ rdf/ # rdf serializer, graph building, manageing namespaces
+│     │   ├─serializers/
+│     │   └─graph/
+# only part that depends on rdflib
+│     │
+│     ├─ fdp/ # client for API interactions, publisher, updater
+│     │
+│     ├─ pipeline/
+# TODO: create config-driven pipeline connecting all steps; start with base class
+# TODO: additional orchestrator/ may be needed for scheduling / executing multiple pipelines in the future
+# composes connector -> extractor -> transformer -> validator -> rdf serializer -> FDP publisher
+# create base and registry.py
+
+addtional logging.py, utils if needed, exceptions (in in modules where needed)
+
 ```
 
 ## Development
