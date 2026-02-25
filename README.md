@@ -45,26 +45,7 @@ uv sync
 
 Make sure to have a keyring backend configured.
 
-### Additional installations for developers
 
-```
-# install missing packages with uv
-# uv add <package-name>
-# uv add --dev <package-name> # for development dependencies
-```
-
-```
-# enable pre-commit hooks for linting and formatting
-pre-commit install
-```
-
-When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
-
-```
-# initialize local configuration file for Git submodules and fetch data from projects
-git submodule init
-git submodule update
-```
 
 ## Repository overview
 
@@ -103,20 +84,28 @@ docs
 
 ## Development
 
-### Environment
-
-Dependencies othe rthan Python packages are specified in the environment file `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. 
-
-Below is the code that was used to create the conda environment from scratch. See [Using UV and Conda Together Effectively: A Fast, Flexible Workflow](https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0)
-
-Python packages were installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
+Python packages are installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
 
 ```
-mamba create -n meta2fdp python=3.12
-mamba activate meta2fdp
-pip install uv
-conda env export --no-builds | grep -v "^prefix: " > envs/meta2fdp.yml
+# install missing packages with uv
+# uv add <package-name>
+# uv add --dev <package-name> # for development dependencies
 ```
+
+```
+# enable pre-commit hooks for linting and formatting
+pre-commit install
+```
+
+When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
+
+```
+# initialize local configuration file for Git submodules and fetch data from projects
+git submodule init
+git submodule update
+```
+
+
 
 <!--
 
@@ -149,13 +138,7 @@ export CONF_PATH="/PATHTOPROJECT/config/FDP/configuration.yaml"
 
 ```
 
-## Install local `fairopal` Python package 
 
-Install local package in the activated environment in development mode using `pip` but without installing package dependencies. Any dependencies must be installed in the `conda` environment, i.e., specified in `envs/environment.yml`.
-
-```
-pip install --no-build-isolation --no-deps -e .
-```
 
 ## new documentation
 To create the required files from scratch, follow the instructions in the [Sphinx documentation *Getting Started*](https://www.sphinx-doc.org/en/master/usage/quickstart.html). In the example, `sphinx-quickstart` is run in the `doc` directory and source and build directories are separated.
