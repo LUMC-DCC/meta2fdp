@@ -36,20 +36,21 @@ The package reduces manual work, ensures schema compliance, and supports reuse o
 
 ## Installation
 
-Installation of [conda/mamba](#how-to-install-conda-or-mamba) environment and Python package dependencies using `uv` package manager.
+Installation of Python package dependencies using `uv` package manager.
 
 ```{bash}
-# create conda environment from env file
-mamba env create -f envs/meta2fdp.yml
-
-# activate conda environment
-mamba activate meta2fdp
-
 # install meta2fdp and Python dependencies with uv
 uv sync
+```
 
+Make sure to have a keyring backend configured.
+
+### Additional installations for developers
+
+```
 # install missing packages with uv
 # uv add <package-name>
+# uv add --dev <package-name> # for development dependencies
 ```
 
 ```
@@ -57,25 +58,12 @@ uv sync
 pre-commit install
 ```
 
-For developers: When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
+When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
 
 ```
 # initialize local configuration file for Git submodules and fetch data from projects
 git submodule init
 git submodule update
-```
-
-Make sure to have a keyring backend configured.
-
-#### How to install conda or mamba?
-
-Either conda or mamba can be used cross-platform package manager.
-
-[Mamba](https://mamba.readthedocs.io/en/latest/index.html) is compatible with [Conda](https://conda.io/projects/conda/en/latest/index.html) but generally [faster](https://conda.org/learn/faq/) at resolving dependencies. Mamba can be installed using a [Miniforge installer](https://github.com/conda-forge/miniforge).
-
-```{bash}
-curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-bash Miniforge3-$(uname)-$(uname -m).sh
 ```
 
 ## Repository overview

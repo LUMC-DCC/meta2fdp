@@ -1,8 +1,0 @@
-name: docs
-channels:
-  - conda-forge
-dependencies:
-  - python=3.8.19
-  - sphinx=7.1.2
-  - sphinx-autoapi==3.3.3
-  - furo==2024.8.6
