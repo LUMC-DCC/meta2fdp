@@ -2,14 +2,11 @@
 TODO: this tests a pipeline that is not yet fully implemented, so it should be adapted as the pipeline is developed. The idea is to have a test that shows the minimum script for uploading content from a csv source, and then adapt it as the pipeline is developed / implemented as part of the package. The test should be adapted to the actual implementation of the pipeline, and should not be a copy of the pipeline script itself. The test should be a simplified version of the pipeline script, that shows the minimum steps for uploading content from a csv source. The test should be adapted to the actual implementation of the pipeline, and should not be a copy of the pipeline script itself. The test should be a simplified version of the pipeline script, that shows the minimum steps for uploading content from a csv source.
 """
 
-import sys
-import os
-import subprocess
 import pytest
 from pathlib import Path
 from rdflib import URIRef
 from meta2fdp.parsers.csvparser import CSVParser as Parser
-from meta2fdp.schemas.hriv2schema import Hriv2Schema as Schema
+from meta2fdp.models.HRIcore.v2.hriv2schema import Hriv2Schema as Schema
 from meta2fdp.fdp.FDPClient import FDPClient as Client
 
 

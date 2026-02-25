@@ -52,34 +52,16 @@ Make sure to have a keyring backend configured.
 ```
 meta2fdp/
 │
-├─src/
-│ └─meta2fdp/
-│   │
-│   ├─__init__.py
-│   ├─config/ - models loader defaults # defines connector type, schema version, profiles, FDP endpoint, pipeline options
-│   ├─connectors/ - base sqlserver mongodb rest_api csv excel factory
-│   │ ├─base # abstract infeaces
-│   ├─extract # instantiates connectors from config, handles retries, logs extraction, normalizes raw output
-│   ├─models - base profiles version / base registry v1 - dataset distributin catalog # core domain, clean and indepependent - HRI/v2 profiles/ for default injections after transformation but before final validation
-│   ├─validation - base schema business_rules registry # while schema validation is structural, this is rule based validation / semantic rules
-│   ├─transform - base mappers registry # mappers for different input sources, convert raw input to pydantic model
-│   ├─rdf - serializer graph_builder # convert pydantic model to rdf graph, manage namespaces, serialize to ttl ; serialization
-│   ├─fdp - client publisher updater exceptions # POST PACTH DELETE metadata (PATCH doesn't work directly), authenticate; publishing
-pipeline - base - orchestrator stages # high-level assembly: extract -> transform -> profile -> validate -> rdf -> publish; config-driven and testable
-orchestration # advanced scenarios - runner, scheduler; execute multiple pipelines
-utils.py # sahred helpers
-exceptions.py
-logging.py
-
-
-
-tests - unit integration # mock connectos and FDP API using docker compose
-docker
-pyproject.toml
-README.md
-docs
-
-└─
+├─ src/
+│  └─ meta2fdp/
+│     │
+│     ├─ __init__.py
+│     │
+│     ├─ config/                    # Configuration models & defaults
+│     │
+│     ├─ models/                    # Core domain models (clean & independent)
+│     │    ├─ base.py               # Abstract model
+│
 ```
 
 ## Development

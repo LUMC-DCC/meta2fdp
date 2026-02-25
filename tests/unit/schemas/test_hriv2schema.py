@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from rdflib import URIRef, Graph
 from sempyro import LiteralField, hri_dcat
-from meta2fdp.schemas.hriv2schema import Hriv2Schema as Schema
+from meta2fdp.models.HRIcore.v2.hriv2schema import Hriv2Schema as Schema
 
 
 @pytest.fixture

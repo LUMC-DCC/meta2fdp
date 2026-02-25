@@ -3,7 +3,7 @@
 import pandas as pd
 from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
-from meta2fdp.schemas.abstractschema import AbstractSchema
+from meta2fdp.models.base import AbstractSchema
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog,
