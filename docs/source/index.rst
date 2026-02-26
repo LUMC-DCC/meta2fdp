@@ -6,17 +6,16 @@
 meta2fdp documentation
 ======================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   user_guide.md
-   dev_guide.md
+   readme
+   user_guide
+   dev_guide
+   mermaidtest
+   apidoc/modules
 
 
 Indices and tables

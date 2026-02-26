@@ -1,4 +1,4 @@
-# Developer documentation
+# Developer guide
 
 Python packages are installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
 
@@ -27,8 +27,12 @@ git submodule update
 ## Build documentation
 
 ```
-# Clean existing doc files
+# Clean existing build files
 rm -r docs/build/*
+# Create module documentation
+cd docs/
+sphinx-apidoc -o source/apidoc ../src/meta2fdp
 # Build documentation in docs/
 make html
 ```
+

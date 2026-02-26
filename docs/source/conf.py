@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 import tomllib
 
+# Make sure that the src directory is in the Python path so that Sphinx can find the modules to document
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src"))
 )
@@ -38,12 +39,16 @@ release = project_metadata.get("version", "0.0.0")
 
 extensions = [
     "sphinx.ext.autodoc",  # for automatic documentation of Python modules
+    "sphinx.ext.autosummary",  # for generating summary tables for modules, classes, and functions
     "sphinx.ext.napoleon",  # for Google style docstrings
     "sphinx.ext.viewcode",  # for adding links to source code in the documentation
-    "sphinx.ext.autosummary",  # for generating summary tables for modules, classes, and functions
+    "myst_parser",  # for parsing Markdown files,
     "sphinxcontrib.mermaid",  # for rendering Mermaid diagrams in the documentation
-    "myst_parser",  # for parsing Markdown files
+    "sphinx_autodoc_typehints",  # for including type hints in the documentation
 ]
+
+autosummary_generate = True
+
 napoleon_google_docstring = True
 
 templates_path = ["_templates"]

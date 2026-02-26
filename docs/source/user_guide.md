@@ -1,4 +1,4 @@
-# User documentation
+# User guide
 
 Installation of Python package dependencies using [`uv` Python package manager](https://docs.astral.sh/uv/).
 
