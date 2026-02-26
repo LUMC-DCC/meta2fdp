@@ -15,8 +15,8 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   user_guide
-   dev_guide
+   user_guide.md
+   dev_guide.md
 
 
 Indices and tables

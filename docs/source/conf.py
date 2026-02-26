@@ -2,14 +2,36 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+import os
+import sys
+from pathlib import Path
+import tomllib
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../src"))
+)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "meta2fdp"
-copyright = "2026, Karolis Cremers, Anna Niehues"
-author = "Karolis Cremers, Anna Niehues"
-release = "0.1.0"
+pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
+with open(pyproject_path, "rb") as f:
+    pyproject_toml = tomllib.load(f)
+
+# project metadata from pyproject.toml
+project_metadata = pyproject_toml.get("project", {})
+
+project = project_metadata.get("name", "meta2fdp")
+author = ", ".join(
+    [
+        author["name"]
+        for author in project_metadata.get(
+            "authors", [{"name": "Karolis Cremers, Anna Niehues"}]
+        )
+    ]
+)
+copyright = "2026, Leiden University Medical Center (LUMC)"
+release = project_metadata.get("version", "0.0.0")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
