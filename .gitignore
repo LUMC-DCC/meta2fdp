@@ -10,3 +10,6 @@ __pycache__/
 # Environment variables
 .env
 tests/.env.test.local
+
+# Docs
+docs/build/

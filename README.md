@@ -41,6 +41,7 @@ Installation of Python package dependencies using `uv` package manager.
 ```{bash}
 # install meta2fdp and Python dependencies with uv
 uv sync
+source .venv/bin/activate
 ```
 
 Make sure to have a keyring backend configured.
@@ -85,10 +86,11 @@ meta2fdp/
 │     │
 │     ├─ transformers/           # Pydantic model --> Graph
 # TODO: implement a metadata adapter / schema handler that validates record and serializes to rdf; the current implementation resembles an adapter but mixed with the model; transformers are schema-specific; inject information form default profiles
+hexagonal architecture
 │     │
 │     ├─ validation/ # for additional business / semantic validation (in addition to strcutural validation through Pydantic classes)
 │     │
-│     ├─ rdf/ # rdf serializer, graph building, manageing namespaces
+│     ├─ rdf/ # rdf serializer, graph building, managing namespaces
 │     │   ├─serializers/
 │     │   └─graph/
 # only part that depends on rdflib
@@ -128,7 +130,14 @@ git submodule init
 git submodule update
 ```
 
+### Documentation
 
+```
+# Clean existing doc files
+rm -r docs/build/*
+# Build documentation
+sphinx-build -M dirhtml docs/source docs/build
+```
 
 <!--
 
