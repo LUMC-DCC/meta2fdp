@@ -36,20 +36,83 @@ The package reduces manual work, ensures schema compliance, and supports reuse o
 
 ## Installation
 
-Installation of [conda/mamba](#how-to-install-conda-or-mamba) environment and Python package dependencies using `uv` package manager.
+Installation of Python package dependencies using `uv` package manager.
 
 ```{bash}
-# create conda environment from env file
-mamba env create -f envs/meta2fdp.yml
-
-# activate conda environment
-mamba activate meta2fdp
-
 # install meta2fdp and Python dependencies with uv
 uv sync
+```
 
+Make sure to have a keyring backend configured.
+
+
+
+## Repository overview
+
+```
+meta2fdp/
+│
+├─ src/
+│  └─ meta2fdp/
+│     │
+│     ├─ __init__.py
+│     │
+│     ├─ config/                    # Configuration of models & defaults; typed with Pydantic
+│     │  ├─ connector.py
+│     │  ├─ schema.py
+│     │  └─ etc.
+# TODO: create config/ modules - connector type, schema version, profiles, FDP endpoint, pipeline options; don't mix config logic with business logic
+# TODO: add configuration registry
+│     │
+│     ├─ connectors/
+# TODO: create base class connector; create different connectors for sqlserver, mongodb, csv etc.; this does not handle the content, it only establishes the connection; handle opening of connections, authentication, closing connection
+# should also retrieve information from source system, but logically separate establishing connection and reading information
+# base connector defines connect, extract, clode/cleanup; subclassess for SQL, RESTAPI, ; the subclass for specific databases
+│     ├─ extractors/
+# TODO: decide whether to combines or separate connector and extractor/reader/parser
+│     │
+│     ├─ models/                    # Core domain models (clean & independent), pure Pydantic
+│     │  ├─ base.py               # Abstract model - base class for metadata record
+│     │  └─ HRIcore/              # Keep different schemas separate
+│     │     └─ v2/                # Keep different versions separate
+│     │        └─ dataset.py
+# TODO: this should not contain functionality related to RDF serialization; it should only represent the data structures for schema validation; move serialization of models to rdf/serializers/ module per schema and version - this makes models/ independent of rdflib;
+# TODO: add models/registry.py to register the differnt schemas/versions (important in future) (started);
+# TODO: separate classes/concepts dataset, catalog, distribution etc.; - this might jus be imports from Sempyro; name the classes in a uniform way, so that schemas can be replaced easily
+# TODO: base class should only enforce common behaviour; is currently schema-specific
+# TODO: add default profiles
+# don't reference connectors, pipelines, clients inside models
+│     │
+│     ├─ transformers/           # Pydantic model --> Graph
+# TODO: implement a metadata adapter / schema handler that validates record and serializes to rdf; the current implementation resembles an adapter but mixed with the model; transformers are schema-specific; inject information form default profiles
+│     │
+│     ├─ validation/ # for additional business / semantic validation (in addition to strcutural validation through Pydantic classes)
+│     │
+│     ├─ rdf/ # rdf serializer, graph building, manageing namespaces
+│     │   ├─serializers/
+│     │   └─graph/
+# only part that depends on rdflib
+│     │
+│     ├─ fdp/ # client for API interactions, publisher, updater
+│     │
+│     ├─ pipeline/
+# TODO: create config-driven pipeline connecting all steps; start with base class
+# TODO: additional orchestrator/ may be needed for scheduling / executing multiple pipelines in the future
+# composes connector -> extractor -> transformer -> validator -> rdf serializer -> FDP publisher
+# create base and registry.py
+
+addtional logging.py, utils if needed, exceptions (in in modules where needed)
+
+```
+
+## Development
+
+Python packages are installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
+
+```
 # install missing packages with uv
 # uv add <package-name>
+# uv add --dev <package-name> # for development dependencies
 ```
 
 ```
@@ -57,7 +120,7 @@ uv sync
 pre-commit install
 ```
 
-Submodules are used to deploy an FDP locally for testing. This requires **Docker**.
+When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
 
 ```
 # initialize local configuration file for Git submodules and fetch data from projects
@@ -65,35 +128,7 @@ git submodule init
 git submodule update
 ```
 
-Make sure to have a keyring backend configured.
 
-#### How to install conda or mamba?
-
-Either conda or mamba can be used cross-platform package manager.
-
-[Mamba](https://mamba.readthedocs.io/en/latest/index.html) is compatible with [Conda](https://conda.io/projects/conda/en/latest/index.html) but generally [faster](https://conda.org/learn/faq/) at resolving dependencies. Mamba can be installed using a [Miniforge installer](https://github.com/conda-forge/miniforge).
-
-```{bash}
-curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-bash Miniforge3-$(uname)-$(uname -m).sh
-```
-
-## Development
-
-### Environment
-
-Dependencies othe rthan Python packages are specified in the environment file `envs/meta2fdp.yml`. See the [Mamba User Guide](https://mamba.readthedocs.io/en/latest/user_guide/mamba.html) for more information. 
-
-Below is the code that was used to create the conda environment from scratch. See [Using UV and Conda Together Effectively: A Fast, Flexible Workflow](https://medium.com/@datagumshoe/using-uv-and-conda-together-effectively-a-fast-flexible-workflow-d046aff622f0)
-
-Python packages were installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
-
-```
-mamba create -n meta2fdp python=3.12
-mamba activate meta2fdp
-pip install uv
-conda env export --no-builds | grep -v "^prefix: " > envs/meta2fdp.yml
-```
 
 <!--
 
@@ -126,13 +161,7 @@ export CONF_PATH="/PATHTOPROJECT/config/FDP/configuration.yaml"
 
 ```
 
-## Install local `fairopal` Python package 
 
-Install local package in the activated environment in development mode using `pip` but without installing package dependencies. Any dependencies must be installed in the `conda` environment, i.e., specified in `envs/environment.yml`.
-
-```
-pip install --no-build-isolation --no-deps -e .
-```
 
 ## new documentation
 To create the required files from scratch, follow the instructions in the [Sphinx documentation *Getting Started*](https://www.sphinx-doc.org/en/master/usage/quickstart.html). In the example, `sphinx-quickstart` is run in the `doc` directory and source and build directories are separated.

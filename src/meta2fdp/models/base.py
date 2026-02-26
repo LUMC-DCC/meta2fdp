@@ -1,4 +1,4 @@
-"""This module contains the AbstractModel class, which serves as a blueprint for converting metadata from a pandas Series to RDF graphs using the SeMPyRO library. The AbstractModel class defines methods for setting default values, converting HRI resource classes to RDF graphs, and instantiating various SeMPyRO classes such as HRIAgent, HRIVCard, HRICatalog, HRIDataset, HRIDistribution, HRIDatasetSeries, and HRIDataService. The implementation of these methods is left to be defined in subclasses that inherit from AbstractModel."""
+"""This module contains the AbstractSchema class, which serves as a blueprint for converting metadata from a pandas Series to RDF graphs using the SeMPyRO library. The AbstractSchema class defines methods for setting default values, converting HRI resource classes to RDF graphs, and instantiating various SeMPyRO classes such as HRIAgent, HRIVCard, HRICatalog, HRIDataset, HRIDistribution, HRIDatasetSeries, and HRIDataService. The implementation of these methods is left to be defined in subclasses that inherit from AbstractSchema."""
 
 from rdflib import Graph, URIRef, XSD
 from pandas import Series
@@ -22,7 +22,7 @@ from sempyro.hri_dcat import (
 # mappping files are per resource
 
 
-class AbstractModel(metaclass=ABCMeta):
+class AbstractSchema(metaclass=ABCMeta):
     def __init__(self, default_values: dict) -> None:
         # example properties for default values:
         self.default_values = None

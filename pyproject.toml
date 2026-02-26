@@ -11,11 +11,10 @@ requires-python = ">=3.12"
 dependencies = [
     "keyring>=25.7.0",
     "pandas>=3.0.1",
-    "pre-commit>=4.5.1",
+    "python-dotenv>=1.2.1",
     "pyyaml>=6.0.3",
     "rdflib>=7.6.0",
     "requests>=2.32.5",
-    "ruff>=0.15.1",
     "sempyro>=2.1.0",
 ]
 
@@ -25,3 +24,20 @@ meta2fdp = "meta2fdp:main"
 [build-system]
 requires = ["uv_build>=0.10.4,<0.11.0"]
 build-backend = "uv_build"
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = [
+    "tests",
+]
+addopts = [
+    "-ra",
+]
+norecursedirs = ["__pycache__"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.2",
+]

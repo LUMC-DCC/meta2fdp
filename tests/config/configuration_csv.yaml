@@ -8,8 +8,8 @@ FDP: # labels of environment variables containing secrets:
   parent_resource_purl: parent_resource_purl
 
 file_paths: # settings for running the main inside src:
-  catalog_input_file: tests/test_pass/Health-RI_LUMC_catalogue.csv
-  dataset_input_file: tests/test_pass/Health-RI_LUMC_datasets.csv
+  catalog_input_file: tests/data/input/Health-RI_LUMC_catalogue.csv
+  dataset_input_file: tests/data/input/Health-RI_LUMC_datasets.csv
   distribution_input_file: null
   dataservice_input_file: null
   datasetseries_input_file: null
