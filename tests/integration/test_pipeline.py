@@ -7,7 +7,7 @@ from pathlib import Path
 from rdflib import URIRef
 from meta2fdp.parsers.csvparser import CSVParser as Parser
 from meta2fdp.models.HRIcore.v2.hriv2schema import Hriv2Schema as Schema
-from meta2fdp.fdp.FDPClient import FDPClient as Client
+from meta2fdp.fdp.fdpclient import FDPClient as Client
 
 
 from tests.fixtures.build_fdp import fdp_server
