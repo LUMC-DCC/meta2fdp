@@ -136,7 +136,8 @@ git submodule update
 # Clean existing doc files
 rm -r docs/build/*
 # Build documentation
-sphinx-build -M dirhtml docs/source docs/build
+#sphinx-build -M dirhtml docs/source docs/build
+make html
 ```
 
 <!--
