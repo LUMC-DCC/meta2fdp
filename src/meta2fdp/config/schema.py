@@ -8,15 +8,15 @@ class SchemaConfig(BaseConfig):
 
     name: str
     type: str = "schema"
-    schema: str
-    version: str
+    schema_name: str
+    schema_version: str
 
     def validate_config(self, model_registry) -> bool:
         """Validate the schema configuration parameters."""
         # For this example, we don't have specific parameters to validate, but this method can be expanded as needed.
-        if not model_registry.exists(self.name, self.version):
+        if not model_registry.exists(self.schema_name, self.schema_version):
             raise ValueError(
-                f"Schema with name '{self.name}' and version '{self.version}' is not registered in the model registry."
+                f"Schema with name '{self.schema_name}' and version '{self.schema_version}' is not registered in the model registry."
             )
         return True
 
@@ -25,6 +25,6 @@ class SchemaConfig(BaseConfig):
         return {
             "name": self.name,
             "type": self.type,
-            "schema": self.schema,
-            "version": self.version,
+            "schema": self.schema_name,
+            "version": self.schema_version,
         }

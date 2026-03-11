@@ -23,12 +23,14 @@ class PublishMetadataPipeline(Pipeline):
 
         self.schema_module = self._resolve_schema()
 
-        def _resolve_schema(self):
-            """Resolve the metadata schema module from the model registry based on the schema configuration."""
-            return self.registries.models.get(
-                self.schema_config.name, self.schema_config.version
-            )
+    def _resolve_schema(self):
+        """Resolve the metadata schema module from the model registry based on the schema configuration."""
+        # TODO: registries could be its own object - create in bootstrap.py?
+        return self.registries.get("models").get(
+            self.schema_config.schema_name, self.schema_config.schema_version
+        )
 
-        def run(self):
-            """Run the PublishMetadataPipeline by executing each component in sequence."""
-            pass
+    def run(self):
+        """Run the PublishMetadataPipeline by executing each component in sequence."""
+        print("Running PublishMetadataPipeline...")
+        return
