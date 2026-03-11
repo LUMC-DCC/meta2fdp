@@ -1,3 +1,10 @@
+"""Module for managing the registry of metadata schema modules.
+This module defines the ModelRegistry class, which allows for registering and retrieving metadata schema modules by name and version.
+The registry is used to keep track of the available metadata schemas, and to allow for easy retrieval of these schemas.
+The ModelRegistry class provides methods for registering a new metadata schema, checking if a schema exists, and retrieving a registered schema by name and version.
+The registry is implemented as a dictionary, where the keys are the schema names and the values are dictionaries that map schema versions to the corresponding metadata schema modules.
+"""
+
 from types import ModuleType
 from typing import Dict, Type
 
