@@ -49,7 +49,7 @@ class ModelRegistry:
                 raise KeyError(
                     f"Schema with name '{schema_name}' and version '{schema_version}' is not registered."
                 )
-        return self._model_registry[schema_name, schema_version]
+        return self._model_registry[schema_name][schema_version]
 
     def list_schemas(self):
         return list(self._model_registry.keys())

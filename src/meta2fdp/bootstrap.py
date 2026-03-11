@@ -4,5 +4,5 @@ from meta2fdp.models.registry import ModelRegistry
 
 def register_models():
     registry = ModelRegistry()
-    registry.register("HRIcore", "2.0", HRIcore_v2)
+    registry.register("HRIcore", "v2", HRIcore_v2)
     return registry
