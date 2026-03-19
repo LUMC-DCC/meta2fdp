@@ -1,0 +1,28 @@
+theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
+accesrights: http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC
+applicablelegislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
+langtags: en,nl
+
+contactPoint:
+  email:
+  name_en:
+  name_nl:
+
+publisher:
+  name_en:
+  name_nl:
+  email:
+  identifier:
+  url:
+  country:
+  publishertype:
+  publishernote:
+
+creator:
+  name_en:
+  name_nl:
+  email:
+  identifier:
+  url:
+  country:
+
