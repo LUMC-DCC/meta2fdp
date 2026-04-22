@@ -201,7 +201,7 @@ def setup(compose_dir=None, config=None):
 
 def teardown(compose_dir, config=None):
     """Tear down the environment by stopping the FDP server and cleaning up environment variables and keyring entries."""
-    subprocess.run(["docker", "compose", "down"], cwd=compose_dir)
+    subprocess.run(["docker", "compose", "down", "-v"], cwd=compose_dir)
     # cleanup env vars and keyring set by build_fdp.setup() to avoid cross-test pollution
     try:
         if config:
