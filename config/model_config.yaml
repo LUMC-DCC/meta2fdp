@@ -1,13 +1,19 @@
 langtags: en,nl
 # currently assumes that catalogs and datasets will have the same pattern
+title: title
+description: description
+identifier: identifier
 theme: theme
-# something different then accesrights, license is for the content of the metatdata
 license: license
-accesrights: accesrights
+accessRights: accessRights
+keywords: keywords
+applicable_legislation: applicable_legislation
+numberOfRecords: numberOfRecords
+numberOfUniqueIndividuals: numberOfUniqueIndividuals
 
 contactPoint:
-  contactPoint_email: contactPoint_email
-  contactPoint_name: contactPoint_name
+  email: contactPoint_email
+  name: contactPoint_name
 
 publisher:
   name: publisher_name

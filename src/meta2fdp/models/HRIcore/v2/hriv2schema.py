@@ -298,7 +298,7 @@ class Hriv2Schema(AbstractSchema):
                 ","
             ),  # HACK: assumes the keywords are stored as a comma seperated list
             applicable_legislation=[
-                URIRef(metadata.loc[self.model_config["applicableLegislation"]])
+                URIRef(metadata.loc[self.model_config["applicable_legislation"]])
             ],
             number_of_records=LiteralField(
                 value=str(metadata.loc[self.model_config["numberOfRecords"]]),

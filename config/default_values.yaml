@@ -1,13 +1,13 @@
 #assumes that catalogs and datasets have the same publishers and agents.
 catalog:
-  applicablelegislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
+  applicable_legislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
   spatial: http://publications.europa.eu/resource/authority/country/NLD
   homepage: https://www.lumc.nl
 
 dataset:
   theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
   accesrights: http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC
-  applicablelegislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
+  applicable_legislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
 
 contactPoint:
   hasEmail: mailto:rds@example.org
