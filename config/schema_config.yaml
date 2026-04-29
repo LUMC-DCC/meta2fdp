@@ -1,0 +1,7 @@
+schema:
+  model: HRIcore
+  version: v2.0.2
+
+secrets: passwords, APIkey # keyring
+server_config: server adress, username # environment variables
+values

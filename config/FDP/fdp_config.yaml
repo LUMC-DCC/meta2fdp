@@ -1,4 +1,4 @@
 FDP: # labels of environment variables containing secrets:
-  URL: ephemeralFDP #used as URL to interact with and keyring service name
+  URL: ephemeralFDP #used as URL to interact with and keyring service name # ENVIRONMENT VARIABLE
   username: ephemeralFDPusername
   parent_resource_purl: parent_resource_purl

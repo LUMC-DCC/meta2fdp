@@ -1,4 +1,8 @@
-mode: 
+mode: # 
   replace: False
   publish: True
-  langtags: en,nl
+  langtags: en,nl # should probably be not here?
+
+components:
+  fdp_settings: fdp_config
+  
