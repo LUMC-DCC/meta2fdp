@@ -1,0 +1,32 @@
+#assumes that catalogs and datasets have the same publishers and agents.
+catalog:
+  applicable_legislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
+  spatial: http://publications.europa.eu/resource/authority/country/NLD
+  homepage: https://www.lumc.nl
+
+dataset:
+  theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
+  accesrights: http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC
+  applicable_legislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
+
+contactPoint:
+  hasEmail: mailto:rds@example.org
+  formatted_name: contact_name
+
+publisher:
+  name_en: Leiden University Medical Center
+  name_nl: Leids Universitair Medisch Centrum
+  mbox: mailto:rds@example.org
+  identifier: https://ror.org/05xvt9f17
+  homepage: https://www.lumc.nl
+  spatial: http://publications.europa.eu/resource/authority/country/NLD
+  publisher_type: http://purl.org/adms/publishertype/Academia-ScientificOrganisation
+  publisher_note_nl: "Het Leids Universitair Medisch Centrum (LUMC) is een universitair medisch centrum (umc). Wij hebben een actieve en innovatieve rol in de gezondheidszorg: regionaal, nationaal en internationaal. Dat is terug te zien in onze 3 kerntaken: patiëntenzorg, wetenschappelijk onderzoek en het opleiden van zorgprofessionals (onderwijs)."
+
+creator:
+  name_en: Leiden University Medical Center
+  name_nl: Leids Universitair Medisch Centrum
+  mbox: mailto:rds@example.org
+  identifier: https://ror.org/05xvt9f17
+  homepage: https://www.lumc.nl
+  spatial: http://publications.europa.eu/resource/authority/country/NLD

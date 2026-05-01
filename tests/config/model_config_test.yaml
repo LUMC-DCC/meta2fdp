@@ -1,17 +1,48 @@
-
-namespace: https://fdp.example.org/
-theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
-license: http://example.org/niet-open  # we don't have an LUMC standard yet.
+langtags: en,nl
+# currently assumes that catalogs and datasets will have the same pattern
+title: title
+description: description
+identifier: identifier
+theme: theme
+license: license
+accessRights: accessRights
+keywords: keywords
+applicable_legislation: applicable_legislation
+numberOfRecords: numberOfRecords
+numberOfUniqueIndividuals: numberOfUniqueIndividuals
 
 contactPoint:
-  contactPoint_email:
-  contactPoint_name:
+  email: contactPoint_email
+  name: contactPoint_name
 
 publisher:
-  publisher_name_en: 
-  publisher_name_nl:
-  publisher_email:
-  publisher_identifier:
-  publisher_url:
+  name: publisher_name
+  mbox: publisher_email
+  identifier: publisher_identifier
+  homepage: publisher_url
+  country: publisher_country
+  publishertype: publisher_publishertype
+  publishernote: publisher_publishernote
 
-langtags: en,nl
+creator:
+  name: creator_name
+  mbox: creator_email
+  identifier: creator_identifier
+  homepage: creator_url
+  country: creator_country
+  
+funder:
+  name: funder_name
+  email: funder_email
+  identifier: funder_identifier
+  url: funder_url
+  country: funder_country
+  role: https://standards.iso.org/iso/19115/resources/Codelists/gml/CI_RoleCode.xml#funder
+
+author:
+  name: author_name
+  email: author_email
+  identifier: author_identifier
+  url: author_url
+  country: author_country
+  role: author_role
