@@ -13,14 +13,14 @@ def test_secrets_provider_is_abstract():
 
 def test_env_secrets_provider_returns_env_value(monkeypatch):
     monkeypatch.setenv("TEST_SECRET_VALUE", "supersecret")
-    provider = EnvSecretsProvider()
+    provider = EnvSecretsProvider(env_path="tests\.env.test")
 
     assert provider.get("TEST_SECRET_VALUE") == "supersecret"
 
 
 def test_env_secrets_provider_returns_none_when_missing(monkeypatch):
     monkeypatch.delenv("TEST_SECRET_MISSING", raising=False)
-    provider = EnvSecretsProvider()
+    provider = EnvSecretsProvider(env_path="tests\.env.test")
 
     assert provider.get("TEST_SECRET_MISSING") is None
 
