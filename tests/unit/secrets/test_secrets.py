@@ -37,8 +37,8 @@ def test_keyring_secrets_provider_delegates_to_keyring(monkeypatch):
         fake_get_password,
     )
 
-    provider = KeyringSecretsProvider(service_name="service-name")
-    result = provider.get("api_token")
+    provider = KeyringSecretsProvider()
+    result = provider.get("service-name", "api_token")
 
     assert result == "keyring-secret"
     assert recorded["args"] == ("service-name", "api_token")

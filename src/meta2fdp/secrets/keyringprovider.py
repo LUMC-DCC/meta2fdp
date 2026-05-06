@@ -3,12 +3,9 @@ import keyring
 
 
 class KeyringSecretsProvider(SecretsProvider):
-    def __init__(self, service_name: str):
-        """
-        :param service_name: Service name in keyring  associated with pipeline name. This is used to retrieve secrets from keyring .
-        :type service_name: str
-        """
-        self.service_name = service_name
+    """A secrets provider that retrieves secrets from the system keyring using the keyring library.
+    This allows for secure storage and retrieval of secrets using the underlying keyring implementation of the operating system.
+    """
 
-    def get(self, name):
-        return keyring.get_password(self.service_name, name)
+    def get(self, service_name: str, username: str) -> str:
+        return keyring.get_password(service_name, username)
