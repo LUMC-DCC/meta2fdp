@@ -28,3 +28,6 @@ class SchemaConfig(BaseConfig):
             "schema": self.schema_name,
             "version": self.schema_version,
         }
+
+    def get_default_values(self, path):
+        self.parse_yaml(path)
