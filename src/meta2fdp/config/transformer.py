@@ -3,7 +3,7 @@
 from meta2fdp.config.base import BaseConfig
 
 
-class SchemaConfig(BaseConfig):
+class TransformerConfig(BaseConfig):
     """Configuration class for schema-related settings in meta2fdp."""
 
     name: str
