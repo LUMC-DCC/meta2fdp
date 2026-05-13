@@ -6,7 +6,7 @@ from pydantic import Field
 from meta2fdp.config.connector.base import ConnectorConfig
 
 
-class SQLConnectorConfig(ConnectorConfig):
+class CSVConnectorConfig(ConnectorConfig):
     """Configuration class for connectors in meta2fdp. This class defines the parameters required to configure a connector, including the connector name and any additional parameters needed for the specific connector implementation. The validate_config method can be used to ensure that the provided configuration parameters are valid for the specified connector, while the public_dict method can be used to return a dictionary of the configuration parameters that are safe to expose publicly (e.g., for logging or error messages)."""
 
     name: str
