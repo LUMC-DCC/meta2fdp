@@ -1,8 +1,10 @@
 """Abstract base class for configuration objects in meta2fdp."""
 
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Dict
 from pydantic import BaseModel
+import yaml
 
 
 class BaseConfig(BaseModel, ABC):
@@ -15,22 +17,29 @@ class BaseConfig(BaseModel, ABC):
     """
 
     name: str
-    type: str
+    config_type: str
 
     @abstractmethod
     def validate_config(self) -> bool:
-        """Validate the configuration parameters. Must be implemented by subclasses."""
-        pass
+        try:
+            if self.model_validate() is BaseModel:
+                return True  # pydantic model validation to ensure all fields are valid according to their types and constraints
+        except Exception as e:
+            raise ValueError(
+                f"Invalid configuration parameters for connector '{self.name}': {str(e)}"
+            )
 
     @abstractmethod
     def public_dict(self) -> Dict[str, Any]:
         """Return a dictionary of the configuration parameters that are safe to expose publicly (e.g., for logging or error messages). Must be implemented by subclasses."""
         pass
 
-    def parse_yaml(self, yaml_data: Dict[str, Any]):
+    def parse_yaml(self, path: Path) -> None:
         """Parse the configuration parameters from a YAML dictionary. This method can be overridden by subclasses if they require custom parsing logic."""
-        for key, value in yaml_data.items():
-            setattr(self, key, value)
+        with open(path, "r") as f:
+            yaml_data = yaml.safe_load(f)
+            for key, value in yaml_data.items():
+                setattr(self, key, value)
 
     class Config:
         frozen = True  # Make the configuration objects immutable to prevent accidental changes after creation
