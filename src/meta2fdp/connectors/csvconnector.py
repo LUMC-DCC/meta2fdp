@@ -3,14 +3,14 @@
 from os import PathLike
 from pathlib import Path
 from typing import Union
-from meta2fdp.config.connector.csvconnector import CsvConnectorConfig
+from meta2fdp.config.connector.csvconnector import CSVConnectorConfig
 import pandas as pd
 
 
 class CSVConnector:
-    """Connector for reading metadata from CSV files. This connector is designed to read metadata from CSV files and convert it into a format that can be used by the rest of the meta2fdp pipeline. The connector uses the configuration parameters specified in the CsvConnectorConfig class to determine the file paths for the catalog and dataset metadata, and it implements methods to read these files and return the metadata as pandas DataFrames. The connector also includes error handling to ensure that the specified file paths exist and that the required parameters are provided in the configuration."""
+    """Connector for reading metadata from CSV files. This connector is designed to read metadata from CSV files and convert it into a format that can be used by the rest of the meta2fdp pipeline. The connector uses the configuration parameters specified in the CSVConnectorConfig class to determine the file paths for the catalog and dataset metadata, and it implements methods to read these files and return the metadata as pandas DataFrames. The connector also includes error handling to ensure that the specified file paths exist and that the required parameters are provided in the configuration."""
 
-    def __init__(self, config: CsvConnectorConfig):
+    def __init__(self, config: CSVConnectorConfig):
         self.config = config
 
     def _resolve_path(self, p: Union[str, PathLike, Path]) -> Path:
