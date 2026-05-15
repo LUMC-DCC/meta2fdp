@@ -1,5 +1,7 @@
 """DFextractor: uses mappings to extract resource matadata from CSV files and return pandas.DataFrame objects."""
 
+import logging
+
 import pandas as pd
 from meta2fdp.extractors.base import AbstractExtractor
 from meta2fdp.config.extractor.extractor import ExtractorConfig
@@ -17,6 +19,7 @@ class DFExtractor(AbstractExtractor):
 
     def __init__(self, config: ExtractorConfig):
         self.config = config
+        self.config.get_mappings()
 
     def map_metadata(self, df: pd.DataFrame, properties: dict) -> pd.DataFrame:
         """
@@ -44,24 +47,33 @@ class DFExtractor(AbstractExtractor):
         :rtype: pandas.DataFrame
         :raises FileNotFoundError: If the config value is missing or file not found.
         """
+        logging.info("Parsing catalog dataframe using DFExtractor...")
         catalog_properties = self.config.mappings.get("catalog", False)
         if not catalog_properties:
+            logging.error("Catalog properties have not been set in config!")
+            logging.debug(f"Current config mappings: {self.config.mappings}")
             raise FileNotFoundError("Catalog properties have not been set in config!")
         publisher_properties = self.config.mappings.get("publisher", False)
         if not publisher_properties:
+            logging.error("Publisher properties have not been set in config!")
+            logging.debug(f"Current config mappings: {self.config.mappings}")
             raise FileNotFoundError("Publisher properties have not been set in config!")
         contact_point_properties = self.config.mappings.get("contact_point", False)
         if not contact_point_properties:
+            logging.error("Contact point properties have not been set in config!")
+            logging.debug(f"Current config mappings: {self.config.mappings}")
             raise FileNotFoundError(
                 "Contact point properties have not been set in config!"
             )
         creator_properties = self.config.mappings.get("creator", False)
         if not creator_properties:
+            logging.error("Creator properties have not been set in config!")
+            logging.debug(f"Current config mappings: {self.config.mappings}")
             raise FileNotFoundError("Creator properties have not been set in config!")
-        self.map_metadata(catalog_df, catalog_properties)
-        self.map_metadata(catalog_df, publisher_properties)
-        self.map_metadata(catalog_df, contact_point_properties)
-        self.map_metadata(catalog_df, creator_properties)
+        catalog_df = self.map_metadata(catalog_df, catalog_properties)
+        catalog_df = self.map_metadata(catalog_df, publisher_properties)
+        catalog_df = self.map_metadata(catalog_df, contact_point_properties)
+        catalog_df = self.map_metadata(catalog_df, creator_properties)
         return catalog_df
 
     def parse_dataset(self, dataset_df: pd.DataFrame) -> pd.DataFrame:
