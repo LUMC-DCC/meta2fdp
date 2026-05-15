@@ -26,6 +26,7 @@ class CSVConnectorConfig(ConnectorConfig):
     dataset_input_file: Path = Field(
         ..., description="Path to the CSV file containing dataset metadata."
     )
+    # TODO make the file paths optional and parse from yaml if not provided, to allow for more flexible configuration
 
     def validate_config(self) -> bool:
         """Validate the configuration parameters for the CSV connector. This method checks that the required parameters are present and that the specified file paths exist. If any validation checks fail, an appropriate exception is raised with a descriptive error message.
