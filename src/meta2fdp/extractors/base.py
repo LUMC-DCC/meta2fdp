@@ -19,15 +19,27 @@ signatures. See `tests/parsers/test_abstractparser.py` for an example.
 
 from abc import ABCMeta, abstractmethod
 from pandas import DataFrame
+from pyparsing.common import Any
 
 
-class AbstractParser(metaclass=ABCMeta):
+class AbstractExtractor(metaclass=ABCMeta):
     """An abstract class that defines functions and behaviours desired
     from a parser module.
     """
 
     def __init__(self, config) -> None:
         self.config = config
+
+    @abstractmethod
+    def map_metadata(self, metadata: Any):
+        """A function that maps metadata from the configured source to the expected output format.
+
+        :param metadata: A collection of metadata on resources
+        :type metadata: Any
+        :return: A collection of metadata on resources in the expected output format
+        :rtype: Any
+        """
+        pass
 
     @abstractmethod
     def parse_catalog(self) -> DataFrame:
