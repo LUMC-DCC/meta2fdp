@@ -19,9 +19,6 @@ signatures. See `tests/parsers/test_abstractparser.py` for an example.
 
 from abc import ABCMeta, abstractmethod
 from pandas import DataFrame
-from pathlib import Path
-from typing import Union
-from os import PathLike
 
 
 class AbstractParser(metaclass=ABCMeta):
@@ -31,35 +28,6 @@ class AbstractParser(metaclass=ABCMeta):
 
     def __init__(self, config) -> None:
         self.config = config
-
-    def _resolve_path(self, p: Union[str, PathLike, Path]) -> Path:
-        """
-        Resolve and validate a filesystem path.
-
-        :param p: Path-like object or string to resolve.
-        :type p: str or os.PathLike or pathlib.Path
-        :returns: Resolved pathlib.Path
-        :rtype: pathlib.Path
-        :raises FileNotFoundError: If the resolved path does not exist.
-        """
-        p = Path(p)
-        p = p.expanduser().resolve(strict=False)
-        if not p.exists():
-            raise FileNotFoundError(f"File not found: {p}")
-        return p
-
-    @abstractmethod
-    def get_metadata(self, path: str) -> DataFrame:
-        """A function that obtains the metadata of a resource.
-        This could be a database query or a file that is read.
-        For queries, this function should be extended with credentials.
-
-        :param path: A path, URI or other that points to the location of the data
-        :type path: str
-        :return: Output should be a table where every row is an individual resource
-        :rtype: DataFrame
-        """
-        pass
 
     @abstractmethod
     def parse_catalog(self) -> DataFrame:
