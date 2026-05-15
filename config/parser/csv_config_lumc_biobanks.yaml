@@ -1,10 +1,3 @@
-file_paths:
-  catalog_input_file: catalog_input_file
-  dataset_input_file: datasets_input_file
-  distribution_input_file: 
-  dataservice_input_file: 
-  datasetseries_input_file: 
-
 mapping:
   catalog:
     title: title
