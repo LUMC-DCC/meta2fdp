@@ -1,5 +1,6 @@
 """Connector for reading metadata from CSV files."""
 
+import logging
 from os import PathLike
 from pathlib import Path
 from typing import Union
@@ -24,11 +25,9 @@ class CSVConnector:
         :raises FileNotFoundError: If the resolved path does not exist.
         """
         p = Path(p)
-        if __debug__:
-            print(f"Resolving path: {p}")
+        logging.debug(f"Resolving path: {p}")
         p = p.expanduser().resolve(strict=False)
-        if __debug__:
-            print(f"Resolved path: {p}")
+        logging.debug(f"Resolved path: {p}")
         if not p.exists():
             raise FileNotFoundError(f"File not found: {p}")
         return p
