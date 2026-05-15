@@ -2,10 +2,10 @@ mappings:
   catalog:
     title: title
     description: description
-    applicable_legislation: 
-    geographical_coverage: 
-    temporal_coverage: 
-    homepage: 
+    applicable_legislation: NULL
+    geographical_coverage: NULL
+    temporal_coverage: NULL
+    homepage: NULL
 
   dataset:
     title: title
@@ -14,8 +14,8 @@ mappings:
     theme: theme
     license: license
     access_rights: access_rights
-    keyword: 
-    applicable_legislation: 
+    keyword: NULL
+    applicable_legislation: NULL
     number_of_records: numberOfRecords
     number_of_unique_individuals: numberOfUniqueIndividuals
 
@@ -29,8 +29,8 @@ mappings:
     identifier: publisher_identifier
     homepage: publisher_url
     country: publisher_country
-    publishertype: 
-    publishernote: 
+    publishertype: NULL
+    publishernote: NULL
 
   creator:
     name: creator_name
