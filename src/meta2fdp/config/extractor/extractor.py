@@ -13,23 +13,16 @@ class ExtractorConfig(BaseConfig):
     """
 
     name: str
-    config_type: str = "parser"
-    parser_name: str
+    config_type: str = "extractor"
+    extractor_name: str
+    mapping_file: Path | None = Field(
+        description="Path to the mapping file used by the parser.",
+        default=Path("config/extractor/mappings_default.yaml"),
+    )
 
-    def __init__(
-        self, name: str, bases: tuple[type, ...], dict: Dict[str, Any], /, **kwds: Any
-    ) -> None:
-        self.mapping_file: Path = Field(
-            ...,
-            description="Path to the mapping file used by the parser.",
-            default=Path("config/extractor/mappings_default.yaml"),
-        )
-        self.mappings: Dict[str, str | Dict[str, Any]] = Field(
-            ...,
-            description="Dictionary of mappings used by the extractor.",
-            default_factory=lambda: self.get_mappings(self.mapping_file),
-        )
-        super().__init__(name, bases, dict, **kwds)
+    mappings: Dict[str, str | Dict[str, Any]] | None = Field(
+        description="Dictionary of mappings used by the extractor.", default=None
+    )
 
     def validate_config(self) -> bool:
         """Validate the configuration parameters. Must be implemented by subclasses."""
@@ -42,7 +35,15 @@ class ExtractorConfig(BaseConfig):
     def parse_yaml(self, path: Path):
         self.parse_yaml(path)
 
-    def get_mappings(self, path: Path) -> Dict[str, str | Dict[str, Any]]:
-        """Return a dictionary of mappings from the parser configuration. Must be implemented by subclasses."""
-        yaml_data = yaml.safe_load(path.read_text())
-        return yaml_data.get("mappings", {})
+    def get_mappings(self) -> Dict[str, str | Dict[str, Any]]:
+        """Set mappings based on mapping_file attribute. Return a dictionary of mappings from the configuration."""
+        if (
+            not self.mappings
+        ):  # Only load the mappings from the file if they have not already been loaded
+            raise FileNotFoundError(
+                "Mapping file path is not set in the configuration."
+            )
+        with open(self.mapping_file, "r") as file:
+            yaml_data = yaml.safe_load(file)
+        setattr(self, "mappings", yaml_data.get("mappings", {}))
+        return self.mappings
