@@ -1,4 +1,6 @@
 mappings:
+  lang_tags: en,nl
+  
   catalog:
     title: title
     description: description
