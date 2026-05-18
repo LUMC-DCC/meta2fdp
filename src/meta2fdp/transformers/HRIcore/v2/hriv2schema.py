@@ -3,7 +3,8 @@
 import pandas as pd
 from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
-from meta2fdp.models.base import AbstractSchema
+from meta2fdp.transformers.base import AbstractSchema
+from meta2fdp.config.transformer.transformer import TransformerConfig
 from sempyro import LiteralField
 from sempyro.hri_dcat import (
     HRICatalog,
@@ -41,11 +42,18 @@ _Attrs = {
 
 
 class Hriv2Schema(AbstractSchema):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: TransformerConfig) -> None:
+        # Accept either a TransformerConfig instance
         self.config = config
-        self.model_config = self.config["model_config"]
-        self.default_values = self.config.get("default_values", {})
-        self.langtags = self.model_config["langtags"].split(",")
+
+        # Assume a TransformerConfig-like object
+        self.default_values = getattr(config, "default_values", {}) or {}
+        self.langtags = (
+            getattr(config, "language_tags", ["en"])
+            if hasattr(config, "language_tags")
+            else ["en"]
+        )
+
         # Cache factory-generated model classes
         self._catalog_model = None
         self._dataset_model = None
@@ -54,9 +62,14 @@ class Hriv2Schema(AbstractSchema):
 
     def set_schema_config(self, config: dict) -> None:
         self.config = config
-        self.model_config = self.config["model_config"]
-        self.default_values = self.config.get("default_values", {})
-        self.langtags = self.model_config["langtags"].split(",")
+        # Assume a TransformerConfig-like object
+        self.default_values = getattr(config, "default_values", {}) or {}
+        self.langtags = (
+            getattr(config, "language_tags", ["en"])
+            if hasattr(config, "language_tags")
+            else ["en"]
+        )
+
         # Reset cached models if config changes
         self._catalog_model = None
         self._dataset_model = None
@@ -71,7 +84,7 @@ class Hriv2Schema(AbstractSchema):
 
         This function attempts to create LiteralField objects for a given column name
         from the metadata series. It first checks for a non-language-tagged value,
-        then for language-tagged variants based on configured language tags in the schema.
+        then if no such value is found, looks for language-tagged variants based on configured language tags in the schema.
 
         :param metadata: Metadata series containing resource properties.
         :type metadata: pd.Series
@@ -211,10 +224,8 @@ class Hriv2Schema(AbstractSchema):
         """
         vcard_cls = self.create_vcard_model()
         vcard = vcard_cls(
-            hasEmail="mailto:" + metadata.loc[self.model_config[prefix]["email"]],
-            formatted_name=self.lang_literals(
-                metadata, self.model_config[prefix]["name"]
-            ).pop(),  # formatted_name accepts a single property
+            hasEmail="mailto:" + metadata.loc[f"{prefix}_email"],
+            formatted_name=self.lang_literals(metadata, f"{prefix}_name").pop(),
         )
         return vcard
 
@@ -236,10 +247,10 @@ class Hriv2Schema(AbstractSchema):
         """
         agent_cls = self.create_agent_model()
         return agent_cls(
-            name=self.lang_literals(metadata, self.model_config[agent_prefix]["name"]),
-            identifier=[metadata.loc[self.model_config[agent_prefix]["identifier"]]],
-            homepage=URIRef(metadata.loc[self.model_config[agent_prefix]["homepage"]]),
-            mbox="mailto:" + metadata.loc[self.model_config[agent_prefix]["mbox"]],
+            name=self.lang_literals(metadata, f"{agent_prefix}_name"),
+            identifier=[metadata.loc[f"{agent_prefix}_identifier"]],
+            homepage=URIRef(metadata.loc[f"{agent_prefix}_url"]),
+            mbox="mailto:" + metadata.loc[f"{agent_prefix}_email"],
         )
 
     def instantiate_HRICatalog(
@@ -259,8 +270,8 @@ class Hriv2Schema(AbstractSchema):
         """
         catalog_cls = self.create_catalog_model()
         catalog = catalog_cls(
-            title=self.lang_literals(metadata, self.model_config["title"]),
-            description=self.lang_literals(metadata, self.model_config["description"]),
+            title=self.lang_literals(metadata, "title"),
+            description=self.lang_literals(metadata, "description"),
             contact_point=contact_point,
             publisher=publisher,
             dataset=[],
@@ -276,10 +287,10 @@ class Hriv2Schema(AbstractSchema):
     ):
         dataset_cls = self.create_dataset_model()
         dataset = dataset_cls(
-            title=self.lang_literals(metadata, self.model_config["title"]),
-            description=self.lang_literals(metadata, self.model_config["description"]),
+            title=self.lang_literals(metadata, "title"),
+            description=self.lang_literals(metadata, "description"),
             # release_date=parser.isoparse("2024-07-01T11:11:11Z"),
-            identifier=str(metadata.loc[self.model_config["identifier"]]),
+            identifier=str(metadata.loc["identifier"]),
             # modification_date=parser.isoparse("2024-06-04T13:36:10Z"),
             contact_point=contact_point,
             creator=creators,
@@ -287,25 +298,23 @@ class Hriv2Schema(AbstractSchema):
             theme=[
                 URIRef(
                     "http://publications.europa.eu/resource/authority/data-theme/"
-                    + metadata.loc[self.model_config["theme"]]
+                    + metadata.loc["theme"]
                 )
             ],
             access_rights=URIRef(
                 "http://publications.europa.eu/resource/authority/access-right/"
-                + str(metadata.loc[self.model_config["accessRights"]])
+                + str(metadata.loc["accessRights"])
             ),
-            keyword=metadata.loc[self.model_config["keywords"]].split(
+            keyword=metadata.loc["keywords"].split(
                 ","
             ),  # HACK: assumes the keywords are stored as a comma seperated list
-            applicable_legislation=[
-                URIRef(metadata.loc[self.model_config["applicable_legislation"]])
-            ],
+            applicable_legislation=[URIRef(metadata.loc["applicable_legislation"])],
             number_of_records=LiteralField(
-                value=str(metadata.loc[self.model_config["numberOfRecords"]]),
+                value=str(metadata.loc["numberOfRecords"]),
                 datatype=XSD.nonNegativeInteger,
             ),  # relevant in current samplenavigator usecase
             number_of_unique_individuals=LiteralField(
-                value=str(metadata.loc[self.model_config["numberOfUniqueIndividuals"]]),
+                value=str(metadata.loc["numberOfUniqueIndividuals"]),
                 datatype=XSD.nonNegativeInteger,
             ),  # relevant in current samplenavigator usecase
             distribution=[],  # not sure if this is ever needed, as a new distribution is automatically linked to it's dataset by the FDP
