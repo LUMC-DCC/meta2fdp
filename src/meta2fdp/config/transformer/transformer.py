@@ -7,9 +7,11 @@ class TransformerConfig(BaseConfig):
     """Configuration class for schema-related settings in meta2fdp."""
 
     name: str
-    type: str = "schema"
+    config_type: str = "transformer"
     schema_name: str
     schema_version: str
+    default_values: dict = {}
+    language_tags: list = ["en", "nl"]
 
     def validate_config(self, model_registry) -> bool:
         """Validate the schema configuration parameters."""
@@ -24,10 +26,12 @@ class TransformerConfig(BaseConfig):
         """Return a dictionary of the schema configuration parameters that are safe to expose publicly."""
         return {
             "name": self.name,
-            "type": self.type,
+            "config_type": self.config_type,
             "schema": self.schema_name,
             "version": self.schema_version,
         }
 
     def get_default_values(self, path):
-        self.parse_yaml(path)
+        with open(path, "r") as f:
+            self.default_values = self.load_yaml(f)
+        return self.default_values
