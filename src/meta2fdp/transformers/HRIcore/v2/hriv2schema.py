@@ -43,7 +43,6 @@ _Attrs = {
 
 class Hriv2Schema(AbstractSchema):
     def __init__(self, config: TransformerConfig) -> None:
-        # Accept either a TransformerConfig instance
         self.config = config
 
         # Assume a TransformerConfig-like object
@@ -62,6 +61,7 @@ class Hriv2Schema(AbstractSchema):
 
     def set_schema_config(self, config: dict) -> None:
         self.config = config
+
         # Assume a TransformerConfig-like object
         self.default_values = getattr(config, "default_values", {}) or {}
         self.langtags = (
