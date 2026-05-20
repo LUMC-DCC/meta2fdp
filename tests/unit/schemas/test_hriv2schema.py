@@ -3,14 +3,19 @@ import pandas as pd
 import yaml
 from rdflib import URIRef, Graph
 from sempyro import LiteralField, hri_dcat
-from meta2fdp.models.HRIcore.v2.hriv2schema import Hriv2Schema as Schema
+from meta2fdp.transformers.HRIcore.v2.hriv2schema import Hriv2Schema as Schema
+from meta2fdp.config.transformer.transformer import TransformerConfig as mconfig
 
 
 @pytest.fixture
 def schema():
-    config = yaml.safe_load(open("config\\model_config.yaml"))
-    default_values = yaml.safe_load(open("config\\default_values.yaml"))
-    model_config = {"model_config": config, "default_values": default_values}
+    default_values = yaml.safe_load(open("tests/config/default_values_lumc.yaml"))
+    model_config = mconfig(
+        name="test_config",
+        schema_name="hriv2schema",
+        schema_version="2.0",
+        default_values=default_values,
+    )
     return Schema(model_config)
 
 
@@ -204,31 +209,10 @@ class TestConfiguration:
     def test_config_structure_loaded(self, schema):
         """Test that configuration structure is properly loaded."""
         assert hasattr(schema, "config")
-        assert hasattr(schema, "model_config")
         assert hasattr(schema, "default_values")
         assert hasattr(schema, "langtags")
 
-    def test_model_config_contains_required_keys(self, schema):
-        """Test that model_config contains all required column mapping keys."""
-        required_keys = [
-            "title",
-            "description",
-            "identifier",
-            "theme",
-            "accessRights",
-            "keywords",
-            "applicable_legislation",
-            "numberOfRecords",
-            "numberOfUniqueIndividuals",
-            "langtags",
-            "contactPoint",
-            "publisher",
-            "creator",
-        ]
-        for key in required_keys:
-            assert key in schema.model_config, f"Missing key '{key}' in model_config"
-
-    def test_langtags_parsed_correctly(self, schema):
+    def test_language_tags_parsed_correctly(self, schema):
         """Test that language tags are parsed correctly from config."""
         assert isinstance(schema.langtags, list)
         assert len(schema.langtags) > 0
@@ -236,9 +220,9 @@ class TestConfiguration:
 
     def test_model_config_nested_structure(self, schema):
         """Test that nested configuration structures (contactPoint, publisher, creator) are present."""
-        assert isinstance(schema.model_config.get("contactPoint"), dict)
-        assert isinstance(schema.model_config.get("publisher"), dict)
-        assert isinstance(schema.model_config.get("creator"), dict)
+        assert isinstance(schema.default_values.get("contactPoint"), dict)
+        assert isinstance(schema.default_values.get("publisher"), dict)
+        assert isinstance(schema.default_values.get("creator"), dict)
 
 
 class TestFactoryMethods:
@@ -306,8 +290,8 @@ class TestHelperFunctions:
     def test_untag_defaults_removes_single_langtag(self, schema):
         """Test that untag_defaults removes language tags from keys."""
         defaults = {"name_en": "English", "name_nl": "Dutch", "identifier": "123"}
-        langtags = ["en", "nl"]
-        result = schema.untag_defaults(defaults, langtags)
+        language_tags = ["en", "nl"]
+        result = schema.untag_defaults(defaults, language_tags)
         assert "name" in result
         assert "identifier" in result
         assert "name_en" not in result
@@ -320,23 +304,23 @@ class TestHelperFunctions:
             "identifier": "123",
             "url": "http://example.org",
         }
-        langtags = ["en", "nl"]
-        result = schema.untag_defaults(defaults, langtags)
+        language_tags = ["en", "nl"]
+        result = schema.untag_defaults(defaults, language_tags)
         assert "identifier" in result
         assert "url" in result
 
-    def test_untag_defaults_handles_multiple_langtags(self, schema):
+    def test_untag_defaults_handles_multiple_language_tags(self, schema):
         """Test that untag_defaults handles multiple language tags."""
         defaults = {"title_en": "English", "title_nl": "Dutch", "title_fr": "French"}
-        langtags = ["en", "nl", "fr"]
-        result = schema.untag_defaults(defaults, langtags)
+        language_tags = ["en", "nl", "fr"]
+        result = schema.untag_defaults(defaults, language_tags)
         assert result == {"title"}
 
     def test_untag_defaults_empty_dict(self, schema):
         """Test that untag_defaults handles empty dictionary."""
         defaults = {}
-        langtags = ["en", "nl"]
-        result = schema.untag_defaults(defaults, langtags)
+        language_tags = ["en", "nl"]
+        result = schema.untag_defaults(defaults, language_tags)
         assert result == set()
 
     def test_set_defaults_creates_optional_model(self, schema):
@@ -417,8 +401,8 @@ class TestConfigurationUpdates:
         assert schema._agent_model is None
         assert schema._vcard_model is None
 
-    def test_set_schema_config_updates_langtags(self, schema):
-        """Test that set_schema_config updates the langtags list."""
+    def test_set_schema_config_updates_language_tags(self, schema):
+        """Test that set_schema_config updates the language_tags list."""
         new_config = yaml.safe_load(open("config\\model_config.yaml"))
         new_default_values = yaml.safe_load(open("config\\default_values.yaml"))
         new_full_config = {
@@ -427,8 +411,8 @@ class TestConfigurationUpdates:
         }
         schema.set_schema_config(new_full_config)
 
-        # Langtags should be updated
-        assert schema.langtags == new_config["langtags"].split(",")
+        # language_tags should be updated
+        assert schema.language_tags == new_config["language_tags"].split(",")
 
 
 class TestDefaultValueApplication:
