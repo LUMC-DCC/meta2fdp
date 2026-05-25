@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from meta2fdp.secrets.base import SecretsProvider
+import logging
 
 
 class EnvSecretsProvider(SecretsProvider):
@@ -11,13 +12,14 @@ class EnvSecretsProvider(SecretsProvider):
 
     def __init__(self, env_path=None):
         self.env_path = env_path
+        if self.env_path is not None:
+            if __debug__:
+                logging.debug(
+                    f"EnvSecretsProvider: Loading environment variables from {self.env_path}"
+                )
+                load_dotenv(self.env_path, verbose=True)
+            else:
+                load_dotenv(self.env_path)
 
     def get(self, name: str) -> str:
-        if __debug__:
-            print(
-                f"EnvSecretsProvider: Loading environment variables from {self.env_path}"
-            )
-            load_dotenv(self.env_path, verbose=True)
-        else:
-            load_dotenv(self.env_path)
         return os.getenv(name)
