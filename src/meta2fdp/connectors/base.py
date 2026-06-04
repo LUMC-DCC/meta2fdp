@@ -15,7 +15,7 @@ class BaseConnector(ABC):
     """
 
     @abstractmethod
-    def read_catalog(self):
+    def get_catalog(self):
         """Read the catalog metadata from the specified source.
 
         :return: Catalog metadata in connector-specific format
@@ -23,11 +23,20 @@ class BaseConnector(ABC):
         pass
 
     @abstractmethod
-    def read_dataset(self):
+    def get_dataset(self):
         """Read the dataset metadata from the specified source.
 
         :return: Dataset metadata in connector-specific format
         """
+        pass
+
+    def get_distribution(self):
+        pass
+
+    def get_dataservice(self):
+        pass
+
+    def get_datasetseries(self):
         pass
 
     def _resolve_path(self, p: Union[str, PathLike, Path]) -> Path:
