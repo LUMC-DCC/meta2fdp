@@ -1,0 +1,65 @@
+mappings:
+  lang_tags: en,nl
+  
+  catalog:
+    title: title
+    description: description
+    applicable_legislation: NULL
+    geographical_coverage: NULL
+    temporal_coverage: NULL
+    homepage: NULL
+    creator:
+      name: NULL
+      mbox: NULL
+      identifier: NULL
+      homepage: NULL
+      spatial: NULL
+      publisher_note: NULL
+      publisher_type: NULL
+      type: NULL
+    contactPoint:
+      hasEmail: contactPoint_email
+      formatted_name: contactPoint_name
+      contact_page: NULL
+    publisher:
+      name: publisher_name
+      mbox: publisher_email
+      identifier: publisher_identifier
+      homepage: publisher_url
+      country: NULL
+      publishertype: NULL
+      publishernote: NULL
+  
+  dataset:
+    title: title
+    description: description
+    identifier: identifier
+    theme: theme
+    license: NULL
+    access_rights: NULL
+    keyword: NULL
+    applicable_legislation: NULL
+    number_of_records: numberOfRecords
+    number_of_unique_individuals: numberOfUniqueIndividuals
+    creator:
+      name: NULL
+      mbox: NULL
+      identifier: NULL
+      homepage: NULL
+      spatial: NULL
+      publisher_note: NULL
+      publisher_type: NULL
+      type: NULL
+    contactPoint:
+      hasEmail: contactPoint_email
+      formatted_name: contactPoint_name
+      contact_page: NULL
+    publisher:
+      name: publisher_name
+      mbox: publisher_email
+      identifier: publisher_identifier
+      homepage: publisher_url
+      spatial: NULL
+      publishertype: NULL
+      publishernote: NULL
+
