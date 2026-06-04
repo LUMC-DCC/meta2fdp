@@ -1,7 +1,5 @@
 from meta2fdp.config.base import BaseConfig
 from typing import Dict, Any, ClassVar, Type
-
-from meta2fdp.fdp.abstractclient import AbstractClient
 from meta2fdp.secrets.base import SecretsProvider
 
 
@@ -23,9 +21,6 @@ class FDPConfig(BaseConfig):
     )
     environmentprovider: ClassVar[Type[SecretsProvider]] = SecretsProvider
     keyringprovider: ClassVar[Type[SecretsProvider]] = SecretsProvider
-    client_class: Type[
-        AbstractClient
-    ]  # The client class to use for interacting with the FDP server, e.g., "FDPClient".
 
     def validate_config(self):
         """Validate the configuration parameters."""
