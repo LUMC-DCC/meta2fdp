@@ -14,10 +14,11 @@ class ExtractorConfig(BaseConfig):
 
     name: str
     config_type: str = "extractor"
-    extractor_name: str
+    extractor_name: str = "DFExtractor"
+    extractor_type: str = "df"
     mapping_file: Path | None = Field(
         description="Path to the mapping file used by the parser.",
-        default=Path("config/extractor/mappings_default.yaml"),
+        default=None,
     )
 
     mappings: Dict[str, str | Dict[str, Any]] | None = Field(
@@ -26,22 +27,23 @@ class ExtractorConfig(BaseConfig):
 
     def validate_config(self) -> bool:
         """Validate the configuration parameters. Must be implemented by subclasses."""
-        pass
+        raise NotImplementedError("not implemented yet")
 
     def public_dict(self) -> Dict[str, Any]:
         """Return a dictionary of the configuration parameters that are safe to expose publicly (e.g., for logging or error messages). Must be implemented by subclasses."""
-        pass
+        raise NotImplementedError("not implemented yet")
 
     def parse_yaml(self, path: Path):
         self.parse_yaml(path)
 
     def get_mappings(self) -> Dict[str, str | Dict[str, Any]]:
+        # todo allow for path to be passed as an argument, and for the mappings to be set directly in the configuration as well, with the file being used as a fallback if the mappings are not set directly in the configuration
         """Set mappings based on mapping_file attribute. Return a dictionary of mappings from the configuration."""
         if (
-            not self.mappings
+            not self.mapping_file or not self.mapping_file.exists()
         ):  # Only load the mappings from the file if they have not already been loaded
             raise FileNotFoundError(
-                "Mapping file path is not set in the configuration."
+                "Mapping file path is not set or does not exist in the configuration."
             )
         with open(self.mapping_file, "r") as file:
             yaml_data = yaml.safe_load(file)
