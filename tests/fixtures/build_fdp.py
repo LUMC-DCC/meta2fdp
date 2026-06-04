@@ -188,9 +188,9 @@ def setup(compose_dir=None, config=None):
         raise Exception("FDP server did not start within the expected time.")
     token = get_apikey()
     # keyring.delete_password(FDP_BASE_URL,EMAIL)
-    keyring.set_password(os.environ["FDP_BASE_URL"], os.environ["FDP_EMAIL"], token)
+    keyring.set_password(os.environ["FDP_BASE_URL"], os.environ["FDP_USERNAME"], token)
     os.environ[config["FDP"]["URL"]] = os.environ["FDP_BASE_URL"]
-    os.environ[config["FDP"]["username"]] = os.environ["FDP_EMAIL"]
+    os.environ[config["FDP"]["username"]] = os.environ["FDP_USERNAME"]
 
     # update schemas to the ones in the folder tests\data\schema
     schemas = get_schemas(token)
@@ -213,7 +213,9 @@ def teardown(compose_dir, config=None):
                 del os.environ[username_key]
         # remove any API token saved in keyring for the FDP base URL
         try:
-            keyring.delete_password(os.environ["FDP_BASE_URL"], os.environ["FDP_EMAIL"])
+            keyring.delete_password(
+                os.environ["FDP_BASE_URL"], os.environ["FDP_USERNAME"]
+            )
         except Exception:
             pass
     except Exception:

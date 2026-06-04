@@ -14,7 +14,7 @@ meta2fdp documentation
    readme
    user_guide
    dev_guide
-   mermaidtest
+   components
    apidoc/modules
 
 

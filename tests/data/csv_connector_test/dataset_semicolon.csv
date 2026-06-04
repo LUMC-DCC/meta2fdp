@@ -1,0 +1,4 @@
+dataset_id;dataset_name;dataset_description;catalog_id
+DS001;Dataset 1;First dataset;CAT001
+DS002;Dataset 2;Second dataset;CAT001
+DS003;Dataset 3;Third dataset;CAT002

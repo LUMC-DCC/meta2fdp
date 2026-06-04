@@ -1,0 +1,7 @@
+mode: # 
+  replace: False
+  publish: True
+
+components:
+  fdp_settings: fdp_config
+  

@@ -1,0 +1,10 @@
+file_paths:
+  catalog_input_file: catalog_input_file
+  dataset_input_file: datasets_input_file
+  distribution_input_file: NULL
+  dataservice_input_file: NULL
+  datasetseries_input_file: NULL
+
+encoding:
+  seperator: ;
+  header: 0

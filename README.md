@@ -53,58 +53,55 @@ Make sure to have a keyring backend configured.
 ```
 meta2fdp/
 │
-├─ src/
-│  └─ meta2fdp/
-│     │
-│     ├─ __init__.py
-│     │
-│     ├─ config/                    # Configuration of models & defaults; typed with Pydantic
-│     │  ├─ connector.py
-│     │  ├─ schema.py
-│     │  └─ etc.
-# TODO: create config/ modules - connector type, schema version, profiles, FDP endpoint, pipeline options; don't mix config logic with business logic
-# TODO: add configuration registry
-│     │
-│     ├─ connectors/
-# TODO: create base class connector; create different connectors for sqlserver, mongodb, csv etc.; this does not handle the content, it only establishes the connection; handle opening of connections, authentication, closing connection
-# should also retrieve information from source system, but logically separate establishing connection and reading information
-# base connector defines connect, extract, clode/cleanup; subclassess for SQL, RESTAPI, ; the subclass for specific databases
-│     ├─ extractors/
-# TODO: decide whether to combines or separate connector and extractor/reader/parser
-│     │
-│     ├─ models/                    # Core domain models (clean & independent), pure Pydantic
-│     │  ├─ base.py               # Abstract model - base class for metadata record
-│     │  └─ HRIcore/              # Keep different schemas separate
-│     │     └─ v2/                # Keep different versions separate
-│     │        └─ dataset.py
-# TODO: this should not contain functionality related to RDF serialization; it should only represent the data structures for schema validation; move serialization of models to rdf/serializers/ module per schema and version - this makes models/ independent of rdflib;
-# TODO: add models/registry.py to register the differnt schemas/versions (important in future) (started);
-# TODO: separate classes/concepts dataset, catalog, distribution etc.; - this might jus be imports from Sempyro; name the classes in a uniform way, so that schemas can be replaced easily
-# TODO: base class should only enforce common behaviour; is currently schema-specific
-# TODO: add default profiles
-# don't reference connectors, pipelines, clients inside models
-│     │
-│     ├─ transformers/           # Pydantic model --> Graph
-# TODO: implement a metadata adapter / schema handler that validates record and serializes to rdf; the current implementation resembles an adapter but mixed with the model; transformers are schema-specific; inject information form default profiles
-hexagonal architecture
-│     │
-│     ├─ validation/ # for additional business / semantic validation (in addition to strcutural validation through Pydantic classes)
-│     │
-│     ├─ rdf/ # rdf serializer, graph building, managing namespaces
-│     │   ├─serializers/
-│     │   └─graph/
-# only part that depends on rdflib
-│     │
-│     ├─ fdp/ # client for API interactions, publisher, updater
-│     │
-│     ├─ pipeline/
-# TODO: create config-driven pipeline connecting all steps; start with base class
-# TODO: additional orchestrator/ may be needed for scheduling / executing multiple pipelines in the future
-# composes connector -> extractor -> transformer -> validator -> rdf serializer -> FDP publisher
-# create base and registry.py
-
-addtional logging.py, utils if needed, exceptions (in in modules where needed)
-
+└─ src/
+   ├─ meta2fdp/
+   │  │
+   │  ├─ __init__.py
+   │  │
+   │  ├─ config/                Definition of all configurable aspects:
+   │  │  │                        connector types, schemas and versions, FDP endpoints,
+   │  │  │                        pipeline settings; typed with Pydantic
+   │  │  ├─ base.py             Shared configurations structures, common validation logic
+   │  │  ├─ connector.py
+   │  │  ├─ schema.py
+   │  │  └─ etc.
+   │  │
+   │  ├─ connectors/            Establish and manage connections to data sources
+   │  │  ├─ base.py             Abstract connector
+   │  │  ├─ registry.py         Registry of implemented connectors
+   │  │  └─ csv.py              Connector for file-based / CSV data sources
+   │  │
+   │  ├─ extractors/            Extract raw information from data sources and convert to
+   │  │  │                        pandas.DataFrame
+   │  │  ├─ base.py
+   │  │  ├─ registry.py         Registry of implemented extractors
+   │  │  └─ csv.py
+   │  │
+   │  ├─ models/                Core domain models expressed as Pydantic classes
+   │  │  ├─ base.py             Abstract base model for metadata records
+   │  │  ├─ registry.py         Registry of implemented schemas
+   │  │  └─ HRIcore/v2/         Keep different schemas and versions separate
+   │  │     ├─ dataset.py       SeMPyRO-based dataset model
+   │  │     └─ catalog.py
+   │  │
+   │  ├─ transformers/          Processing of extracted information and mapping to schema
+   │  │  │                        pandas.DataFrame → Pydantic model → RDF graph
+   │  │  └─ registry.py         Registry of implemented transformers
+   │  │
+   │  ├─ rdf/                   RDF-related utilities, including graph creation and
+   │  │                           manipulation
+   │  │
+   │  ├─ fdp/                   Client for FAIR Data Point API interactions
+   │  │  ├─ base.py             Abstract base
+   │  │  ├─ registry.py         Registry of implemented FDP types
+   │  │  └─ client.py           Low-level operations: connect, authenticate, publish
+   │  │
+   │  └─ pipeline/              Configuration-driven pipeline connecting all steps
+   │     ├─ base.py
+   │     └─ publish.py          Publish metadata from source to FDP using given schema:
+   │                              connector → extractor → transformer → rdf → fdp
+   │
+   └─ logging.py                Log pipeline parameters, execution steps, results, errors
 ```
 
 ## Development
@@ -136,10 +133,81 @@ git submodule update
 # Clean existing doc files
 rm -r docs/build/*
 # Build documentation
-sphinx-build -M dirhtml docs/source docs/build
+#sphinx-build -M dirhtml docs/source docs/build
+make html
 ```
 
 <!--
+
+```
+meta2fdp/
+│
+├─ src/
+│  └─ meta2fdp/
+│     │
+│     ├─ __init__.py
+│     │
+│     ├─ config/                    # Configuration of models & defaults; typed with Pydantic
+│     │  ├─ connector.py
+│     │  ├─ schema.py
+│     │  └─ etc.
+# TODO: create config/ modules - connector type, schema version, profiles, FDP endpoint, pipeline options; don't mix config logic with business logic
+# TODO: add configuration registry
+│     │
+│     ├─ connectors/
+# TODO: create base class connector; create different connectors for sqlserver, mongodb, csv etc.; this does not handle the content, it only establishes the connection; handle opening of connections, authentication, closing connection
+# should also retrieve information from source system, but logically separate establishing connection and reading information
+# base connector defines connect, extract, clode/cleanup; subclassess for SQL, RESTAPI, ; the subclass for specific databases
+│     ├─ extractors/  # raw input → pandas.df
+# TODO: decide whether to combines or separate connector and extractor/reader/parser
+since current sources are dataframe-like, they are read as dataframe; this could change in future
+https://openreview.net/pdf?id=sK9YZ4JyyI
+│     │
+│     ├─ models/                    # Core domain models (clean & independent), pure Pydantic
+│     │  ├─ base.py               # Abstract model - base class for metadata record
+│     │  └─ HRIcore/              # Keep different schemas separate
+│     │     └─ v2/                # Keep different versions separate
+│     │        └─ dataset.py # sempyro
+│     │        └─ catalog.py
+# TODO: this should not contain functionality related to RDF serialization; it should only represent the data structures for schema validation; move serialization of models to rdf/serializers/ module per schema and version - this makes models/ independent of rdflib;
+# TODO: add models/registry.py to register the differnt schemas/versions (important in future) (started);
+# TODO: separate classes/concepts dataset, catalog, distribution etc.; - this might jus be imports from Sempyro; name the classes in a uniform way, so that schemas can be replaced easily
+# TODO: base class should only enforce common behaviour; is currently schema-specific
+# TODO: add default profiles
+# don't reference connectors, pipelines, clients inside models
+
+│     ├─ profiles/
+│     │  └─ HRIcore/              # Keep different schemas separate
+│     │     └─ v2/                # Keep different versions separate
+│     │        └─ dataset/LUMC.py
+│     │
+│     ├─ transformers/           # df → Pydantic model → Graph
+1. combine source df and profile - df processing
+2. pydantic instantiation - mapping execution
+# TODO: implement a metadata adapter / schema handler that validates record and serializes to rdf; the current implementation resembles an adapter but mixed with the model; transformers are input and schema-specific; inject information form default profiles
+pydantic classes from sempyro function as mapping executor
+hexagonal architecture - https://jmgarridopaz.github.io/content/hexagonalarchitecture.html#tc2
+
+updater/ logic about what to do when
+milestone 4
+│     │
+│     ├─ validation/ # for additional business / semantic validation (in addition to strcutural validation through Pydantic classes)
+milestone 3; examples: check if title is unique enough and meaningful
+input: graph from transformer; output: yes/no
+│     │
+│     ├─ rdf/ # graph building, managing namespaces, graph comparison; what is now graphutils
+│     │
+│     ├─ fdp/ # client for API interactions, interactions to publish, to update, to delete
+functionality to interact with FDP, no logic about when to do what
+│     │
+│     ├─ pipeline/
+# TODO: create config-driven pipeline connecting all steps; start with base class
+# TODO: additional orchestrator/ may be needed for scheduling / executing multiple pipelines in the future
+# composes connector -> extractor -> transformer -> validator -> rdf serializer -> FDP publisher
+# create base and registry.py
+
+addtional logging.py, utils if needed, exceptions (in in modules where needed)
+```
 
 ## Running the pipeline
 

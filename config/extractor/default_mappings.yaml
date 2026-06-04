@@ -1,0 +1,106 @@
+mappings:
+  lang_tags: en,nl
+  
+  catalog:
+    title: title
+    description: description
+    applicable_legislation: applicable_legislation
+    geographical_coverage: geographical_coverage
+    temporal_coverage: temporal_coverage
+    homepage: homepage
+
+  dataset:
+    title: title
+    description: description
+    identifier: identifier
+    theme: theme
+    license: license
+    access_rights: access_rights
+    keyword: keywords
+    applicable_legislation: applicable_legislation
+    number_of_records: numberOfRecords
+    number_of_unique_individuals: numberOfUniqueIndividuals
+
+  distribution:
+    title: title
+    description: description
+    identifier: identifier
+    access_url: access_url
+    media_type: media_type
+    format: format
+    license: license
+    download_url: download_url
+    rights: rights
+    byte_size: byte_size
+    applicable_legislation: applicable_legislation
+    documentation: documentation
+    access_rights: access_rights
+    language: language
+    linked_schemas: linked_schemas
+    modification_date: modification_date
+    release_date: release_date
+    retention_period: retention_period
+    status: status
+
+  dataservice:
+    access_rights: access_rights
+    applicable_legislation: applicable_legislation
+    application_profile: application_profile
+    contact_point: contact_point
+    creator: creator
+    rights: rights
+    endpoint_url: endpoint_url
+    format: format
+    hvd_category: hvd_category
+    other_identifier: other_identifier
+    serves_dataset: serves_dataset
+    endpoint_description: endpoint_description
+    identifier: identifier
+    license: license
+    publisher: publisher
+    theme: theme
+
+  datasetseries:
+    title: title
+    description: description
+    identifier: identifier
+    applicable_legislation: applicable_legislation
+    contact_point: contact_point
+    frequency: frequency
+    publisher: publisher
+
+  contactPoint:
+    hasEmail: contactPoint_email
+    formatted_name: contactPoint_name
+
+  publisher:
+    name: publisher_name
+    mbox: publisher_email
+    identifier: publisher_identifier
+    homepage: publisher_url
+    country: publisher_country
+    publishertype: publisher_publishertype
+    publishernote: publisher_publishernote
+
+  creator:
+    name: creator_name
+    mbox: creator_email
+    identifier: creator_identifier
+    homepage: creator_url
+    country: creator_country
+    
+  funder:
+    name: funder_name
+    mbox: funder_email
+    identifier: funder_identifier
+    homepage: funder_url
+    country: funder_country
+    role: https://standards.iso.org/iso/19115/resources/Codelists/gml/CI_RoleCode.xml#funder
+
+  author:
+    name: author_name
+    hasEmail: author_email
+    identifier: author_identifier
+    homepage: author_url
+    country: author_country
+    role: author_role

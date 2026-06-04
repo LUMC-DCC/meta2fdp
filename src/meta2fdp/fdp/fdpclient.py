@@ -9,22 +9,17 @@ import requests
 import json
 from rdflib import Graph, RDF, URIRef, FOAF, DCAT
 from meta2fdp.graphutils.graphutils import graphutils
-from keyring import get_password
-from os import getenv
+from meta2fdp.config.fdp.fdpconfig import FDPConfig
+import logging
 
 utils = graphutils()
 
 
 class FDPClient(AbstractClient):
-    def __init__(self, config) -> None:
+    def __init__(self, config: FDPConfig) -> None:
         self.config = config
-        self.URL = getenv(self.config["FDP"]["URL"])
-        self.token = None
-        self.parent_resource = (
-            self.config["FDP"]["parent_resource_purl"]
-            if self.config["FDP"]["parent_resource_purl"] != "parent_resource_purl"
-            else None
-        )
+        self.parent_resource = self.config.target_catalog_url
+        self.URL = self.config.get_fdp_url()
 
     @override
     def connection_status(self):
@@ -35,23 +30,25 @@ class FDPClient(AbstractClient):
         :type url: String
         """
         try:
-            response = requests.get(self.URL)
+            response = requests.get(self.config.environmentprovider.get("FDP_URL"))
             if response.status_code == 200:
                 if __debug__:
-                    print(f"Successfully connected to {self.URL}")
+                    logging.info("Successfully connected to FDP")
                 return response.status_code
             else:
-                print(
-                    f"Failed to connect to {self.URL}. Status code: {response.status_code}"
+                logging.error(
+                    f"Failed to connect to {self.config.environmentprovider.get('FDP_URL')}. Status code: {response.status_code}"
                 )
                 return response.status_code
         except requests.exceptions.RequestException as e:
-            print(f"Error connecting to {self.URL}: {e}")
+            logging.error(
+                f"Error connecting to {self.config.environmentprovider.get('FDP_URL')}: {e}"
+            )
 
     @override
     def get_api_token(self):
         """
-        This function generates an bearer-token:
+        This function generates an bearer-token for the pipeline session:
         https://swagger.io/docs/specification/authentication/bearer-authentication/
         This is a token that can be used to authenticate your requests to the FDP server.
         This function returns a string
@@ -59,33 +56,9 @@ class FDPClient(AbstractClient):
         :return: FDP API token
         :rtype: String
         """
-        self.URL = getenv(self.config["FDP"]["URL"])
-        self.token = get_password(self.URL, getenv(self.config["FDP"]["username"]))
-
-        # Check if api-key works:
-        url = self.URL + "/users/current"
-        data = {}
-        payload = json.dumps(data)
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + self.token,
-        }
-        response = requests.request("get", url, data=payload, headers=headers)
-        # print(response.text)
-        if response.status_code == 200:
-            pass
-        elif response.status_code == 401:
-            raise ConnectionRefusedError(
-                "API Token has no Authorization! Check the pipeline config FDP attributes if correct environment variables are assiged"
-            )
-        elif response.status_code == 403:
-            raise ConnectionRefusedError(
-                "API Token is forbidden to see current user data! Check the pipeline config FDP attributes if correct environment variables are assiged"
-            )
-        else:
-            raise ConnectionRefusedError(
-                f"API-key doesn't work, error: {response.json()['text']['error']}"
-            )
+        return self.config.keyringprovider.get(
+            self.URL, self.config.environmentprovider.get("FDP_USERNAME")
+        )
 
     @override
     def get_resource(self, url):
@@ -101,12 +74,15 @@ class FDPClient(AbstractClient):
 
         payload = json.dumps(data)
 
-        headers = {
-            "Content-Type": "text/turtle",
-            "Authorization": "Bearer " + self.token,
-        }
-
-        response = requests.request("GET", url, data=payload, headers=headers)
+        response = requests.request(
+            "GET",
+            url,
+            data=payload,
+            headers={
+                "Content-Type": "text/turtle",
+                "Authorization": "Bearer " + self.get_api_token(),
+            },
+        )
 
         body = response.text
 
@@ -124,27 +100,28 @@ class FDPClient(AbstractClient):
         :return: A string containing a persistent url of the uploaded resource description.
         :rtype: String
         """
-        # print(data)
+        # logging.debug(data)
         # merge server url with resource type to define the resource for the server
         url = self.URL + "/" + resource_type
-        headers = {
-            "Content-Type": "text/turtle",
-            "Authorization": "Bearer " + self.token,
-        }  # change Content-Type to work with other formatting
         if not isinstance(
             data, str
         ):  # make sure the resource description is a string or change it into a string if not
             data = data.decode("utf-8")
         # upload resource description
         response = requests.request(
-            "POST", url, data=data.encode("utf-8"), headers=headers
+            "POST",
+            url,
+            data=data.encode("utf-8"),
+            headers={
+                "Content-Type": "text/turtle",
+                "Authorization": "Bearer " + self.get_api_token(),
+            },
         )
-        # TODO: make this a verbose mode
-        if True:
-            print(response.status_code)  # check server response
-            print(response.headers)
-            print(response.text)
-            print(response.content)
+        logging.debug(f"Response status code: {response.status_code}")
+        logging.debug(response.status_code)  # check server response
+        logging.debug(response.headers)
+        logging.debug(response.text)
+        logging.debug(response.content)
         try:
             resource_url = response.headers["Location"]
         except KeyError:
@@ -153,7 +130,7 @@ class FDPClient(AbstractClient):
                     response.text
                 )
             )
-        # print(resource_url)
+        # logging.debug(resource_url)
         # self.publish_metadata(resource_url.replace(self.FDP_P_URL, self.FDP_URL + "/")) # replace the FDP server URL with the persistent URL of the resource
 
         return resource_url
@@ -171,18 +148,20 @@ class FDPClient(AbstractClient):
         # Define the resource description as published
         data = {"current": "PUBLISHED"}
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + self.token,
-        }
-
         payload = json.dumps(data)
-        response = requests.request("PUT", state_url, data=payload, headers=headers)
+        response = requests.request(
+            "PUT",
+            state_url,
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + self.get_api_token(),
+            },
+        )
         # check server response (manual)
-        if __debug__:
-            print(response.status_code)
-            print(response.headers)
-            print(response.text)
+        logging.debug(response.status_code)
+        logging.debug(response.headers)
+        logging.debug(response.text)
 
     @override
     def put_resource(self, resource_url, body):
@@ -194,17 +173,19 @@ class FDPClient(AbstractClient):
         :param body: A string containing a turtle formatted RDF that changes the resource
         :type body: String
         """
-        headers = {
-            "Content-Type": "text/turtle",
-            "Authorization": "Bearer " + self.token,
-            "Origin": self.URL,
-            "Referer": resource_url + "/edit",
-        }
+
         response = requests.request(
-            "PUT", resource_url, data=body.encode("utf-8"), headers=headers
+            "PUT",
+            resource_url,
+            data=body.encode("utf-8"),
+            headers={
+                "Content-Type": "text/turtle",
+                "Authorization": "Bearer " + self.get_api_token(),
+                "Origin": self.URL,
+                "Referer": resource_url + "/edit",
+            },
         )
-        if self.verbose:
-            print(response)
+        logging.debug(response)
         return response
 
     @override
@@ -336,7 +317,7 @@ class FDPClient(AbstractClient):
                 dcat_type=dcat_type,
                 graph=new_graph,
             )
-            # print(FDP_graph.serialize())
+            # logging.debug(FDP_graph.serialize())
             old_agents = [
                 triple for triple in FDP_graph.triples((None, RDF.type, FOAF.Agent))
             ]
@@ -351,7 +332,7 @@ class FDPClient(AbstractClient):
                 FDP_graph.set(triple)
             self.remove_blank_node(old_agents, FDP_graph)
             self.remove_blank_node(old_Kinds, FDP_graph)
-            # print(FDP_graph.serialize())
+            # logging.debug(FDP_graph.serialize())
             self.update_metadata(url, FDP_graph.serialize())
         return FDP_graph
 
