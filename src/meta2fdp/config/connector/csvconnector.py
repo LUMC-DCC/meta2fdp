@@ -11,7 +11,7 @@ class CSVConnectorConfig(ConnectorConfig):
 
     name: str
     config_type: str = "connector"
-    connector_name: str
+    connector_name: str = "CSVConnector"
     connector_type: str = "csv"
     separator: str = Field(
         ";", description="The separator used in the CSV files. Default is ';'."
