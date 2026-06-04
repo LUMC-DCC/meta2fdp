@@ -32,8 +32,8 @@ class TestCSVConnectorBasicFunctionality:
         assert connector is not None
         assert connector.config == config
 
-    def test_read_catalog_returns_dataframe(self, test_data_dir):
-        """Test that read_catalog returns a pandas DataFrame."""
+    def test_get_catalog_returns_dataframe(self, test_data_dir):
+        """Test that get_catalog returns a pandas DataFrame."""
         config = CSVConnectorConfig(
             name="test_connector",
             connector_name="test",
@@ -41,7 +41,7 @@ class TestCSVConnectorBasicFunctionality:
             dataset_input_file=test_data_dir / "dataset_semicolon.csv",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         assert isinstance(catalog_df, pd.DataFrame)
 
     def test_catalog_has_correct_columns(self, test_data_dir):
@@ -53,7 +53,7 @@ class TestCSVConnectorBasicFunctionality:
             dataset_input_file=test_data_dir / "dataset_semicolon.csv",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         expected_columns = ["catalog_id", "catalog_name", "catalog_description"]
         assert list(catalog_df.columns) == expected_columns
 
@@ -66,7 +66,7 @@ class TestCSVConnectorBasicFunctionality:
             dataset_input_file=test_data_dir / "dataset_semicolon.csv",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         assert len(catalog_df) == 3
 
 
@@ -83,7 +83,7 @@ class TestCSVConnectorSeparatorConfiguration:
             separator=";",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         assert len(catalog_df.columns) == 3
         assert "catalog_id" in catalog_df.columns
         assert catalog_df.iloc[0]["catalog_id"] == "CAT001"
@@ -98,7 +98,7 @@ class TestCSVConnectorSeparatorConfiguration:
             separator=",",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         assert len(catalog_df.columns) == 3
         assert "catalog_id" in catalog_df.columns
         assert catalog_df.iloc[0]["catalog_id"] == "CAT001"
@@ -113,7 +113,7 @@ class TestCSVConnectorSeparatorConfiguration:
             separator="|",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         assert len(catalog_df.columns) == 3
         assert "catalog_id" in catalog_df.columns
         assert catalog_df.iloc[0]["catalog_id"] == "CAT001"
@@ -129,7 +129,7 @@ class TestCSVConnectorSeparatorConfiguration:
             separator=",",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         # With wrong separator, the whole line becomes one column
         assert len(catalog_df.columns) == 1
         assert catalog_df.columns[0] != "catalog_id"
@@ -145,7 +145,7 @@ class TestCSVConnectorSeparatorConfiguration:
             separator=";",
         )
         connector_semicolon = CSVConnector(config_semicolon)
-        df_semicolon = connector_semicolon.read_catalog()
+        df_semicolon = connector_semicolon.get_catalog()
 
         # Parse with comma (incorrect for this file)
         config_comma = CSVConnectorConfig(
@@ -156,7 +156,7 @@ class TestCSVConnectorSeparatorConfiguration:
             separator=",",
         )
         connector_comma = CSVConnector(config_comma)
-        df_comma = connector_comma.read_catalog()
+        df_comma = connector_comma.get_catalog()
 
         # Verify that they produce different results
         assert len(df_semicolon.columns) != len(df_comma.columns)
@@ -177,7 +177,7 @@ class TestCSVConnectorHeaderConfiguration:
             header=0,
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         assert "catalog_id" in catalog_df.columns
         assert "catalog_name" in catalog_df.columns
         assert "catalog_description" in catalog_df.columns
@@ -193,7 +193,7 @@ class TestCSVConnectorHeaderConfiguration:
             header=2,
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
         # After skipping 2 rows, the header should be recognized correctly
         assert "catalog_id" in catalog_df.columns
         assert "catalog_name" in catalog_df.columns
@@ -210,7 +210,7 @@ class TestCSVConnectorHeaderConfiguration:
             header=0,
         )
         connector_header_0 = CSVConnector(config_header_0)
-        df_header_0 = connector_header_0.read_catalog()
+        df_header_0 = connector_header_0.get_catalog()
 
         # With header=1 (second row as header)
         config_header_1 = CSVConnectorConfig(
@@ -221,7 +221,7 @@ class TestCSVConnectorHeaderConfiguration:
             header=1,
         )
         connector_header_1 = CSVConnector(config_header_1)
-        df_header_1 = connector_header_1.read_catalog()
+        df_header_1 = connector_header_1.get_catalog()
 
         # Verify different column names due to different header configuration
         assert df_header_0.columns[0] == "skip_this_row"
@@ -370,7 +370,7 @@ class TestCSVConnectorBehaviorChanges:
                     separator=separator,
                 )
                 connector = CSVConnector(config)
-                df = connector.read_catalog()
+                df = connector.get_catalog()
                 results[separator] = {
                     "column_count": len(df.columns),
                     "row_count": len(df),
@@ -400,7 +400,7 @@ class TestCSVConnectorBehaviorChanges:
             )
             connector = CSVConnector(config)
             try:
-                df = connector.read_catalog()
+                df = connector.get_catalog()
                 results[header] = {
                     "column_count": len(df.columns),
                     "row_count": len(df),
@@ -430,7 +430,7 @@ class TestCSVConnectorBehaviorChanges:
             header=0,
         )
         connector1 = CSVConnector(config1)
-        df1 = connector1.read_catalog()
+        df1 = connector1.get_catalog()
 
         # Read same file with different configuration (wrong separator)
         config2 = CSVConnectorConfig(
@@ -442,7 +442,7 @@ class TestCSVConnectorBehaviorChanges:
             header=0,
         )
         connector2 = CSVConnector(config2)
-        df2 = connector2.read_catalog()
+        df2 = connector2.get_catalog()
 
         # Verify that configuration changes result in different parsing
         assert len(df1.columns) != len(df2.columns)
@@ -465,7 +465,7 @@ class TestCSVConnectorDataIntegrity:
             separator=";",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
 
         # Verify specific data values
         assert catalog_df.iloc[0]["catalog_id"] == "CAT001"
@@ -483,7 +483,7 @@ class TestCSVConnectorDataIntegrity:
             separator=",",
         )
         connector = CSVConnector(config)
-        catalog_df = connector.read_catalog()
+        catalog_df = connector.get_catalog()
 
         # Verify that data is correctly parsed with comma separator
         assert catalog_df.iloc[0]["catalog_id"] == "CAT001"
