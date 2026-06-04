@@ -1,6 +1,7 @@
 """Schema configuration class for meta2fdp."""
 
 from meta2fdp.config.base import BaseConfig
+from yaml import safe_load
 
 
 class TransformerConfig(BaseConfig):
@@ -33,5 +34,4 @@ class TransformerConfig(BaseConfig):
 
     def get_default_values(self, path):
         with open(path, "r") as f:
-            self.default_values = self.load_yaml(f)
-        return self.default_values
+            self.default_values = safe_load(f)
