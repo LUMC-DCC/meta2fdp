@@ -1,9 +1,0 @@
-mappings:
-  catalog: 
-    cat_col: old_col1
-  publisher:
-    pub_col: old_col2
-  creator:
-    cre_col: old_col3
-  contact_point:
-    con_col: old_col4
