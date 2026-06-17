@@ -4,13 +4,13 @@ import yaml
 from rdflib import URIRef, Graph
 from sempyro import LiteralField, hri_dcat
 from meta2fdp.transformers.HRIcore.v2.hriv2schema import Hriv2Schema as Schema
-from meta2fdp.config.transformer.transformer import TransformerConfig as mconfig
+from meta2fdp.config.transformer.transformer import TransformerConfig
 
 
 @pytest.fixture
 def schema():
-    default_values = yaml.safe_load(open("tests/config/default_values_lumc.yaml"))
-    model_config = mconfig(
+    default_values = yaml.safe_load(open("tests\config\default_values_tests.yaml"))
+    model_config = TransformerConfig(
         name="test_config",
         schema_name="hriv2schema",
         schema_version="2.0",
@@ -19,27 +19,122 @@ def schema():
     return Schema(model_config)
 
 
+@pytest.fixture
+def test_catalog_metadata():
+    return [
+        {
+            "title_en": "LUMC Biobanks",
+            "title_nl": "LUMC Biobanken",
+            "contactPoint_name": "Biobankorganisatie LUMC",
+            "contactPoint_email": "biobankorganisatie@lumc.nl",
+            "datasets": "1,2,3",
+            "description_en": "A general description of the LUMC biobanks in English",
+            "description_nl": "Een algemene omschrijving van de LUMC biobanken in het Nederlands",
+            "publisher_name_en": "Leiden University Medical Center",
+            "publisher_name_nl": "Leids Universitair Medisch Centrum",
+            "publisher_email": "biobankorganisatie@lumc.nl",
+            "publisher_identifier": "https://ror.org/05xvt9f17",
+            "publisher_url": "https://www.lumc.nl",
+        }
+    ]
+
+
+@pytest.fixture
+def test_dataset_metadata():
+    """test data for dataset metadata, one with all properties, one without creator and one without publisher to test parsing and model instantiation"""
+    return [
+        {
+            "title_en": "Title1",
+            "title_nl": "Titel1",
+            "accessRights": "RESTRICTED",
+            "applicableLegislation": "https://eur-lex.europa.eu/eli/reg/2025/327/oj",
+            "contactPoint_name": "LUMC Biobankorganisatie",
+            "contactPoint_email": "biobankorganisatie@lumc.nl",
+            "creator_name": "Name Nameson",
+            "creator_email": "N.Nameson@lumc.nl",
+            "creator_identifier": "c1",
+            "creator_url": "https://www.creator.nl",
+            "description_en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            "description": "override description without language tag to test that it properly overrides the language tagged descriptions",
+            "identifier": "1",
+            "keywords": "Lorem, ipsum, dolor, sit, amet",
+            "publisher_name_en": "Leiden University Medical Center",
+            "publisher_name_nl": "Leids Universitair Medisch Centrum",
+            "publisher_email": "biobankorganisatie@lumc.nl",
+            "publisher_identifier": "https://ror.org/05xvt9f17",
+            "publisher_url": "https://www.lumc.nl",
+            "theme": "HEAL",
+            "numberOfUniqueIndividuals": "854",
+            "numberOfRecords": "3429",
+        },
+        {
+            "title_en": "Title2",
+            "title_nl": "Titel2",
+            "accessRights": "RESTRICTED",
+            "applicableLegislation": "https://eur-lex.europa.eu/eli/reg/2025/327/oj",
+            "contactPoint_name": "LUMC Biobankorganisatie",
+            "contactPoint_email": "biobankorganisatie@lumc.nl",
+            "description_en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            "description_nl": "description in Dutch to test that it properly parses language tagged descriptions when no override is present",
+            "identifier": "2",
+            "keywords": "Lorem, ipsum, dolor, sit, amet",
+            "publisher_name_en": "Leiden University Medical Center",
+            "publisher_name_nl": "Leids Universitair Medisch Centrum",
+            "publisher_email": "biobankorganisatie@lumc.nl",
+            "publisher_identifier": "https://ror.org/05xvt9f17",
+            "publisher_url": "https://www.lumc.nl",
+            "theme": "HEAL",
+            "numberOfUniqueIndividuals": "449",
+            "numberOfRecords": "2631",
+        },
+        {
+            "title_en": "Title3",
+            "title_nl": "Titel3",
+            "accessRights": "RESTRICTED",
+            "applicableLegislation": "https://eur-lex.europa.eu/eli/reg/2025/327/oj",
+            "contactPoint_name": "LUMC Biobankorganisatie",
+            "contactPoint_email": "biobankorganisatie@lumc.nl",
+            "creator_name": "Jane Doe",
+            "creator_email": "Ja.Doe@lumc.nl",
+            "creator_identifier": "c3",
+            "creator_url": "https://www.creator.nl",
+            "description_en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            "identifier": "3",
+            "keywords": "Lorem, ipsum, dolor, sit, amet",
+            "theme": "HEAL",
+            "numberOfUniqueIndividuals": "719",
+            "numberOfRecords": "3111",
+        },
+    ]
+
+
 def test_lang_literals(schema):
-    test_metadata = pd.Series(
-        data=["English_tag", "Nederlandse_label"], index=["tag_en", "tag_nl"]
-    )
+    """test proper behaviour of parsing language tags:
+    if a non language tagged column/property name exists in the input of function, it outputs it as a single item list with the value as a string
+     this overrides any language tagged strings that are present
+    if only language tagged column/properties exist (and no untagged column), they are returned as a list of Literal() sempyro fields
+    if none of the column exists, or contain a None value: return None to force defaults when generating resource RDF.
+    """
+    test_metadata = {"tag_en": "English_tag", "tag_nl": "Nederlandse_label"}
     expected_result = [
         LiteralField(value="English_tag", language="en"),
         LiteralField(value="Nederlandse_label", language="nl"),
     ]
     assert expected_result == schema.lang_literals(test_metadata, "tag")
 
-    test_metadata_override = pd.Series(
-        data=["English_tag", "Nederlandse_label", "no_label"],
-        index=["tag_en", "tag_nl", "tag"],
-    )
-    expected_result_override = [LiteralField(value="no_label")]
+    test_metadata_override = {
+        "tag_en": "English_tag",
+        "tag_nl": "Nederlandse_label",
+        "tag": "no_label",
+    }
+    expected_result_override = ["no_label"]
     assert expected_result_override == schema.lang_literals(
         test_metadata_override, "tag"
     )
 
-    test_metadata_nolang = pd.Series(data=["no_label"], index=["tag"])
-    expected_result_nolabel = [LiteralField(value="no_label")]
+    test_metadata_nolang = {"tag": "no_label"}
+    expected_result_nolabel = ["no_label"]
     assert expected_result_nolabel == schema.lang_literals(test_metadata_nolang, "tag")
 
 
@@ -69,107 +164,111 @@ def test_convert_class_to_rdf(schema):
     )
 
 
-def test_instantiate_HRIVcard(schema):
-    test_metadata = pd.Series(
-        data=["contact@example.com", "John Doe"],
-        index=["contactPoint_email", "contactPoint_name"],
-    )
-    result = schema.instantiate_HRIVcard(test_metadata)
-    assert str(result.hasEmail) == "mailto:contact@example.com"
-    assert result.formatted_name.value == "John Doe"
+class TestVcard:
+    """Test suite for the instantiate_vcard method of the Hriv2Schema class."""
+
+    def test_instantiate_vcard(self, schema):
+        test_metadata = {
+            "hasEmail": "mailto:contact@example.com",
+            "formatted_name": "John Doe",
+        }
+        result = schema.instantiate_vcard(test_metadata)
+        assert str(result.hasEmail) == "mailto:contact@example.com"
+        assert result.formatted_name == "John Doe"
+
+    def test_instantiate_vcard_without_mailto(self, schema):
+        test_metadata = {
+            "hasEmail": "contact@example.com",
+            "formatted_name": "John Doe",
+        }
+        result = schema.instantiate_vcard(test_metadata)
+        assert str(result.hasEmail) == "mailto:contact@example.com"
+        assert result.formatted_name == "John Doe"
+
+    def test_instantiate_vcard_with_missing_fields(self, schema):
+        test_metadata = {"hasEmail": "mailto:contact@example.com"}
+        result = schema.instantiate_vcard(test_metadata)
+        assert str(result.hasEmail) == "mailto:contact@example.com"
+        assert result.formatted_name is None
+
+    def test_instantiate_vcard_custom_prefix(self, schema):
+        test_metadata = {
+            "contactPoint_hasEmail": "support@example.com",
+            "contactPoint_formatted_name": "Support Team",
+        }
+        result = schema.instantiate_vcard(test_metadata, prefix="contactPoint_")
+        assert str(result.hasEmail) == "mailto:support@example.com"
+        assert result.formatted_name == "Support Team"
+
+    @pytest.mark.xfail
+    def test_fail_instantiate_vcard_custom_prefix(self, schema):
+        # This test is expected to fail because the prefix "wrongPrefix" does not match the keys in the metadata.
+        test_metadata = pd.Series(
+            data=["support@example.com", "Support Team"],
+            index=["support_email", "support_name"],
+        )
+        result = schema.instantiate_vcard(test_metadata, prefix="wrongPrefix")
+        assert str(result.hasEmail) == "mailto:support@example.com"
+        assert result.formatted_name.value == "Support Team"
 
 
-def test_instantiate_HRIVcard_custom_prefix(schema):
-    test_metadata = pd.Series(
-        data=["support@example.com", "Support Team"],
-        index=["contactPoint_email", "contactPoint_name"],
-    )
-    result = schema.instantiate_HRIVcard(test_metadata, prefix="contactPoint")
-    assert str(result.hasEmail) == "mailto:support@example.com"
-    assert result.formatted_name.value == "Support Team"
+class TestAgent:
+    """Test suite for the instantiate_agent method of the Hriv2Schema class."""
+
+    def test_instantiate_agent(self, schema):
+        test_metadata = {
+            "creator_name_en": "Dr. Jane Smith",
+            "creator_name_nl": "Dr. Jane Smith",
+            "creator_identifier": "agent-123",
+            "creator_homepage": "https://example.org",
+            "creator_mbox": "jane@example.com",
+        }
+        result = schema.instantiate_agent(test_metadata, "creator_")
+        assert result.name[0] == LiteralField(language="en", value="Dr. Jane Smith")
+        assert result.name[1] == LiteralField(language="nl", value="Dr. Jane Smith")
+        assert result.identifier == ["agent-123"]
+        assert str(result.homepage) == "https://example.org/"
+        assert str(result.mbox) == "mailto:jane@example.com"
 
 
-@pytest.mark.xfail
-def test_fail_instantiate_HRIVcard_custom_prefix(schema):
-    # This test is expected to fail because the prefix "wrongPrefix" does not match the keys in the metadata.
-    test_metadata = pd.Series(
-        data=["support@example.com", "Support Team"],
-        index=["support_email", "support_name"],
-    )
-    result = schema.instantiate_HRIVcard(test_metadata, prefix="contactPoint")
-    assert str(result.hasEmail) == "mailto:support@example.com"
-    assert result.formatted_name.value == "Support Team"
+class TestCatalog:
+    """Test suite for the instantiate_HRICatalog method of the Hriv2Schema class."""
+
+    def test_instantiate_catalog(self, schema):
+        catalog_metadata = {"title": "Sample Catalog", "description": "A test catalog"}
+        vcard = hri_dcat.HRIVCard(
+            hasEmail="mailto:contact@test.io",
+            formatted_name=LiteralField(value="Contact"),
+        )
+        agent = hri_dcat.HRIAgent(
+            name=[LiteralField(value="Publisher")],
+            identifier=["pub-1"],
+            mbox="mailto:pub@test.io",
+            homepage="http://example.org",
+        )
+
+        result = schema.instantiate_catalog(
+            {**catalog_metadata, "contactPoint": vcard, "publisher": agent}
+        )
+        assert result.title[0].value == "Sample Catalog"
+        assert result.description[0].value == "A test catalog"
+        assert result.contact_point == vcard
+        assert result.publisher == agent
+        assert result.dataset is None
 
 
-def test_instantiate_agent(schema):
-    test_metadata = pd.Series(
-        data=[
-            "Dr. Jane Smith",
-            "agent-123",
-            "https://example.org",
-            "jane@example.com",
-        ],
-        index=[
-            "creator_name",
-            "creator_identifier",
-            "creator_url",
-            "creator_email",
-        ],
-    )
-    result = schema.instantiate_agent(test_metadata, "creator")
-    assert result.name[0].value == "Dr. Jane Smith"
-    assert result.identifier == ["agent-123"]
-    assert str(result.homepage) == "https://example.org/"
-    assert str(result.mbox) == "mailto:jane@example.com"
-
-
-def test_instantiate_HRICatalog(schema):
-    catalog_metadata = pd.Series(
-        data=["Sample Catalog", "A test catalog"], index=["title", "description"]
-    )
-    vcard = hri_dcat.HRIVCard(
-        hasEmail="mailto:contact@test.io", formatted_name=LiteralField(value="Contact")
-    )
-    agent = hri_dcat.HRIAgent(
-        name=[LiteralField(value="Publisher")],
-        identifier=["pub-1"],
-        mbox="mailto:pub@test.io",
-        homepage="http://example.org",
-    )
-
-    result = schema.instantiate_HRICatalog(catalog_metadata, vcard, agent)
-    assert result.title[0].value == "Sample Catalog"
-    assert result.description[0].value == "A test catalog"
-    assert result.contact_point == vcard
-    assert result.publisher == agent
-    assert result.dataset == []
-
-
-def test_instantiate_HRIDataset(schema):
-    dataset_metadata = pd.Series(
-        data=[
-            "Test Dataset",
-            "A dataset for testing",
-            "dataset-001",
-            "HEAL",
-            "PUBLIC",
-            "keyword1,keyword2",
-            "http://example.org/legislation",
-            "1000",
-            "500",
-        ],
-        index=[
-            "title",
-            "description",
-            "identifier",
-            "theme",
-            "accessRights",
-            "keywords",
-            "applicable_legislation",
-            "numberOfRecords",
-            "numberOfUniqueIndividuals",
-        ],
-    )
+def test_instantiate_dataset(schema):
+    dataset_metadata = {
+        "title": "Test Dataset",
+        "description": "A dataset for testing",
+        "identifier": "dataset-001",
+        "theme": "HEAL",
+        "accessRights": "PUBLIC",
+        "keyword": ["keyword1", "keyword2"],
+        "applicable_legislation": "http://example.org/legislation",
+        "numberOfRecords": "1000",
+        "numberOfUniqueIndividuals": "500",
+    }
     vcard = hri_dcat.HRIVCard(
         hasEmail="mailto:contact@test.io", formatted_name=LiteralField(value="Contact")
     )
@@ -188,7 +287,14 @@ def test_instantiate_HRIDataset(schema):
         )
     ]
 
-    result = schema.instantiate_HRIDataset(dataset_metadata, vcard, agent, creators)
+    result = schema.instantiate_dataset(
+        {
+            **dataset_metadata,
+            "contactPoint": vcard,
+            "publisher": agent,
+            "creator": creators,
+        }
+    )
     assert result.title[0].value == "Test Dataset"
     assert result.description[0].value == "A dataset for testing"
     assert result.identifier == "dataset-001"
@@ -199,8 +305,8 @@ def test_instantiate_HRIDataset(schema):
         LiteralField(value="keyword1"),
         LiteralField(value="keyword2"),
     ]
-    assert result.number_of_records.value == "1000"
-    assert result.number_of_unique_individuals.value == "500"
+    assert result.number_of_records == 1000
+    assert result.number_of_unique_individuals == 500
 
 
 class TestConfiguration:
@@ -346,7 +452,9 @@ class TestConfigurationUpdates:
     def test_set_schema_config_updates_config(self, schema):
         """Test that set_schema_config properly updates the configuration."""
         new_config = yaml.safe_load(open("config\\model_config.yaml"))
-        new_default_values = yaml.safe_load(open("config\\default_values.yaml"))
+        new_default_values = yaml.safe_load(
+            open("tests\config\default_values_tests.yaml")
+        )
         new_full_config = {
             "model_config": new_config,
             "default_values": new_default_values,
@@ -363,7 +471,9 @@ class TestConfigurationUpdates:
 
         # Update config
         new_config = yaml.safe_load(open("config\\model_config.yaml"))
-        new_default_values = yaml.safe_load(open("config\\default_values.yaml"))
+        new_default_values = yaml.safe_load(
+            open("tests\config\default_values_tests.yaml")
+        )
         new_full_config = {
             "model_config": new_config,
             "default_values": new_default_values,
@@ -388,7 +498,9 @@ class TestConfigurationUpdates:
 
         # Update config
         new_config = yaml.safe_load(open("config\\model_config.yaml"))
-        new_default_values = yaml.safe_load(open("config\\default_values.yaml"))
+        new_default_values = yaml.safe_load(
+            open("tests\config\default_values_tests.yaml")
+        )
         new_full_config = {
             "model_config": new_config,
             "default_values": new_default_values,
@@ -404,7 +516,9 @@ class TestConfigurationUpdates:
     def test_set_schema_config_updates_language_tags(self, schema):
         """Test that set_schema_config updates the language_tags list."""
         new_config = yaml.safe_load(open("config\\model_config.yaml"))
-        new_default_values = yaml.safe_load(open("config\\default_values.yaml"))
+        new_default_values = yaml.safe_load(
+            open("tests\config\default_values_tests.yaml")
+        )
         new_full_config = {
             "model_config": new_config,
             "default_values": new_default_values,
