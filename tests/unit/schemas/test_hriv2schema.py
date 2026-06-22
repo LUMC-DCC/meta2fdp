@@ -451,17 +451,19 @@ class TestConfigurationUpdates:
 
     def test_set_schema_config_updates_config(self, schema):
         """Test that set_schema_config properly updates the configuration."""
-        new_config = yaml.safe_load(open("config\\model_config.yaml"))
         new_default_values = yaml.safe_load(
             open("tests\config\default_values_tests.yaml")
         )
-        new_full_config = {
-            "model_config": new_config,
-            "default_values": new_default_values,
-        }
+        transformer_config = TransformerConfig(
+            name="test_config2",
+            schema_name="hriv2schema",
+            schema_version="2.0",
+            default_values=new_default_values,
+            language_tags=["en", "nl"],
+        )
 
-        schema.set_schema_config(new_full_config)
-        assert schema.config == new_full_config
+        schema.set_schema_config(transformer_config)
+        assert schema.config == transformer_config
 
     def test_set_schema_config_resets_catalog_cache(self, schema):
         """Test that set_schema_config resets the catalog model cache."""
@@ -470,15 +472,18 @@ class TestConfigurationUpdates:
         assert schema._catalog_model is not None
 
         # Update config
-        new_config = yaml.safe_load(open("config\\model_config.yaml"))
         new_default_values = yaml.safe_load(
             open("tests\config\default_values_tests.yaml")
         )
-        new_full_config = {
-            "model_config": new_config,
-            "default_values": new_default_values,
-        }
-        schema.set_schema_config(new_full_config)
+        transformer_config = TransformerConfig(
+            name="test_config2",
+            schema_name="hriv2schema",
+            schema_version="2.0",
+            default_values=new_default_values,
+            language_tags=["en", "nl"],
+        )
+
+        schema.set_schema_config(transformer_config)
 
         # Cache should be reset
         assert schema._catalog_model is None
@@ -497,15 +502,17 @@ class TestConfigurationUpdates:
         assert schema._vcard_model is not None
 
         # Update config
-        new_config = yaml.safe_load(open("config\\model_config.yaml"))
         new_default_values = yaml.safe_load(
             open("tests\config\default_values_tests.yaml")
         )
-        new_full_config = {
-            "model_config": new_config,
-            "default_values": new_default_values,
-        }
-        schema.set_schema_config(new_full_config)
+        transformer_config = TransformerConfig(
+            name="test_config2",
+            schema_name="hriv2schema",
+            schema_version="2.0",
+            default_values=new_default_values,
+            language_tags=["en", "nl"],
+        )
+        schema.set_schema_config(transformer_config)
 
         # All caches should be reset
         assert schema._catalog_model is None
@@ -515,18 +522,21 @@ class TestConfigurationUpdates:
 
     def test_set_schema_config_updates_language_tags(self, schema):
         """Test that set_schema_config updates the language_tags list."""
-        new_config = yaml.safe_load(open("config\\model_config.yaml"))
+        # Update config
         new_default_values = yaml.safe_load(
             open("tests\config\default_values_tests.yaml")
         )
-        new_full_config = {
-            "model_config": new_config,
-            "default_values": new_default_values,
-        }
-        schema.set_schema_config(new_full_config)
+        transformer_config = TransformerConfig(
+            name="test_config2",
+            schema_name="hriv2schema",
+            schema_version="2.0",
+            default_values=new_default_values,
+            language_tags=["en", "nl", "fr"],
+        )
+        schema.set_schema_config(transformer_config)
 
         # language_tags should be updated
-        assert schema.language_tags == new_config["language_tags"].split(",")
+        assert schema.langtags == transformer_config.language_tags
 
 
 class TestDefaultValueApplication:
