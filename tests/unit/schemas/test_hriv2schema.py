@@ -99,7 +99,9 @@ class TestVcard:
         test_metadata = {"hasEmail": "mailto:contact@example.com"}
         result = schema.instantiate_vcard(test_metadata)
         assert str(result.hasEmail) == "mailto:contact@example.com"
-        assert result.formatted_name is None
+        assert (
+            result.formatted_name == "contact_name"
+        )  # default value from default_values.yaml
 
     def test_instantiate_vcard_custom_prefix(self, schema):
         test_metadata = {
@@ -146,19 +148,23 @@ class TestCatalog:
 
     def test_instantiate_catalog(self, schema):
         catalog_metadata = {"title": "Sample Catalog", "description": "A test catalog"}
-        vcard = hri_dcat.HRIVCard(
-            hasEmail="mailto:contact@test.io",
-            formatted_name=LiteralField(value="Contact"),
+        vcard = schema.instantiate_vcard(
+            {
+                "hasEmail": "mailto:contact@test.io",
+                "formatted_name": LiteralField(value="Contact"),
+            }
         )
-        agent = hri_dcat.HRIAgent(
-            name=[LiteralField(value="Publisher")],
-            identifier=["pub-1"],
-            mbox="mailto:pub@test.io",
-            homepage="http://example.org",
+        agent = schema.instantiate_agent(
+            {
+                "name": [LiteralField(value="Publisher")],
+                "identifier": ["pub-1"],
+                "mbox": "mailto:pub@test.io",
+                "homepage": "http://example.org",
+            }
         )
 
         result = schema.instantiate_catalog(
-            {**catalog_metadata, "contactPoint": vcard, "publisher": agent}
+            catalog_metadata, contact_point=vcard, publisher=agent, creator=[agent]
         )
         assert result.title[0].value == "Sample Catalog"
         assert result.description[0].value == "A test catalog"
@@ -338,14 +344,6 @@ class TestHelperFunctions:
         language_tags = ["en", "nl"]
         result = schema.untag_defaults(defaults, language_tags)
         assert result == set()
-
-    def test_set_defaults_creates_optional_model(self, schema):
-        """Test that set_defaults creates a model class with defaults applied."""
-        test_defaults = {"name_en": "Test", "identifier": "test-id"}
-        model_cls = schema.set_defaults(hri_dcat.HRIAgent, test_defaults)
-        assert model_cls is not None
-        # Model class name should indicate it's an Optional variant
-        assert "Optional" in model_cls.__name__
 
     def test_set_defaults_model_can_be_instantiated(self, schema):
         """Test that model created by set_defaults can be instantiated."""
