@@ -1,5 +1,7 @@
 """This module contains the implementation of the HRIV2Schema class, which is a specific schema for converting metadata into RDF format using the SeMPyRO library. The class provides methods for instantiating various SeMPyRO classes such as HRICatalog, HRIDataset, HRIVCard, and HRIAgent based on the provided metadata. It also includes a method for converting these classes into RDF graphs. The schema configuration can be set and updated as needed."""
 
+import logging
+
 import pandas as pd
 from rdflib import Graph, URIRef, XSD
 from sempyro.dcat import DCATResource
@@ -14,7 +16,7 @@ from sempyro.hri_dcat import (
 )
 from sempyro import RDFModel
 from typing import Annotated
-from pydantic import Field, create_model, AnyUrl
+from pydantic import Field, create_model, AnyUrl, model_validator
 from pydantic_core._pydantic_core import PydanticUndefinedType
 
 _Attrs = {
@@ -39,6 +41,28 @@ _Attrs = {
     "init_var": None,
     "kw_only": None,
 }
+
+
+@model_validator(mode="before")
+def replace_nones_with_defaults(cls, values):
+
+    if not isinstance(values, dict):
+        return values
+
+    for name, field in cls.model_fields.items():
+        if values.get(name) is None:
+            if field.default_factory is not None:
+                logging.debug(f"Setting default for {name} using default_factory")
+                values[name] = field.default_factory()
+            elif (
+                field.default is not None
+                and type(field.default) is not PydanticUndefinedType
+            ):
+                logging.debug(f"Setting default for {name}: {field.default}")
+                logging.debug(f"default is of type:{type(field.default)}")
+                values[name] = field.default
+
+    return values
 
 
 class Hriv2Schema(AbstractSchema):
@@ -173,12 +197,19 @@ class Hriv2Schema(AbstractSchema):
                 getattr(f_info, "annotation") | None,
                 *getattr(f_info, "metadata"),
                 Field(**{attr: getattr(f_info, attr) for attr in _Attrs}),
-            ]  # , None <- add this to set all defaults to None for the fields
-        return create_model(
-            f"{model_cls.__name__}Optional",
+            ]
+
+        logging.debug(f"Creating model with defaults for {model_cls.__name__}")
+        # logging.debug(f"New fields: {new_fields}")
+        model_with_defaults = create_model(
+            f"{model_cls.__name__}",
             __base__=model_cls,
+            __validators__={
+                "replace_nones": replace_nones_with_defaults,
+            },
             **new_fields,
         )
+        return model_with_defaults
 
     def create_catalog_model(self):
         if self._catalog_model is None:
