@@ -8,6 +8,7 @@ mappings:
     geographical_coverage: NULL
     temporal_coverage: NULL
     homepage: NULL
+    dataset_ids: datasets # This is used in the test_pipeline to obtain which datasets are from which catalog
     creator:
       name: NULL
       mbox: NULL
@@ -37,7 +38,7 @@ mappings:
     theme: theme
     license: NULL
     access_rights: NULL
-    keyword: NULL
+    keyword: keywords
     applicable_legislation: NULL
     number_of_records: numberOfRecords
     number_of_unique_individuals: numberOfUniqueIndividuals

@@ -168,12 +168,7 @@ def test_pipeline(
         )
         if config["mode"]["publish"]:
             client.publish_resource(catalog_fdp_location)
-        # HACK this uses the datasets column to identifiy which datasets are in the catalog
-        # it's bad form as the "dataset" property is used within the schema to actually do that
-        # but that one needs a URL that does not exist yet, as the dataset is not published on the FDP yet.
-        # So we map the ID's that link the two csv files with each other to the arbritrary "datasets" column
-        # in the extractor module (called parser in this iteration of integration test).
-        linked_datasets = catalog_metadata["datasets"].split(",")
+        linked_datasets = catalog_metadata["dataset_ids"].split(",")
         logging.debug(f"linked_datasets: {linked_datasets}")
         for dataset_metadata in datasets_list:
             logging.debug(f"dataset_metadata: {dataset_metadata}")
