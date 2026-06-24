@@ -76,6 +76,23 @@ class Hriv2Schema(AbstractSchema):
             if hasattr(config, "language_tags")
             else ["en"]
         )
+        logging.debug(f"Initialized Hriv2Schema with config: {config}")
+        logging.debug(
+            f"Default values catalog: \n {self.default_values.get('catalog', {})}"
+        )
+        logging.debug(
+            f"Default values dataset: \n {self.default_values.get('dataset', {})}"
+        )
+        logging.debug(
+            f"Default values publisher: \n {self.default_values.get('publisher', {})}"
+        )
+        logging.debug(
+            f"Default values contactPoint: \n {self.default_values.get('contactPoint', {})}"
+        )
+        logging.debug(
+            f"Default values creator: \n {self.default_values.get('creator', {})}"
+        )
+        logging.debug(f"Language tags: {self.langtags}")
 
         # Cache factory-generated model classes
         self._catalog_model = None
@@ -93,6 +110,9 @@ class Hriv2Schema(AbstractSchema):
             if hasattr(config, "language_tags")
             else ["en"]
         )
+        logging.debug(f"Updated Hriv2Schema with config: {config}")
+        logging.debug(f"Updated default values: {self.default_values}")
+        logging.debug(f"Updated language tags: {self.langtags}")
 
         # Reset cached models if config changes
         self._catalog_model = None
