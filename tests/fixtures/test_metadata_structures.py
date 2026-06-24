@@ -28,6 +28,31 @@ def test_catalog_metadata_df(test_catalog_metadata):
 
 
 @pytest.fixture
+def test_catalog_empty_metadata():
+    return [
+        {
+            "title_en": None,
+            "title_nl": None,
+            "contactPoint_name": None,
+            "contactPoint_email": None,
+            "datasets": None,
+            "description_en": None,
+            "description_nl": None,
+            "publisher_name_en": None,
+            "publisher_name_nl": None,
+            "publisher_email": None,
+            "publisher_identifier": None,
+            "publisher_url": None,
+        }
+    ]
+
+
+@pytest.fixture
+def test_catalog_empty_metadata_df(test_catalog_empty_metadata):
+    return pd.DataFrame(data=test_catalog_empty_metadata)
+
+
+@pytest.fixture
 def test_dataset_metadata():
     """test data for dataset metadata, one with all properties, one without creator and one without publisher to test parsing and model instantiation"""
     return [
