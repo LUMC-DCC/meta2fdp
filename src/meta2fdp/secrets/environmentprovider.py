@@ -13,13 +13,14 @@ class EnvSecretsProvider(SecretsProvider):
     def __init__(self, env_path=None):
         self.env_path = env_path
         if self.env_path is not None:
-            if __debug__:
-                logging.debug(
-                    f"EnvSecretsProvider: Loading environment variables from {self.env_path}"
+            logging.debug(
+                f"EnvSecretsProvider: Loading environment variables from {self.env_path}"
+            )
+            loaded = load_dotenv(self.env_path)
+            if not loaded:
+                raise FileNotFoundError(
+                    f"environment file at: {self.env_path} not loaded! Are you sure that is the right path?"
                 )
-                load_dotenv(self.env_path, verbose=True)
-            else:
-                load_dotenv(self.env_path)
 
-    def get(self, name: str) -> str:
+    def get_info(self, name: str) -> str:
         return os.getenv(name)

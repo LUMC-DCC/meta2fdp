@@ -1,5 +1,6 @@
 from meta2fdp.config.base import BaseConfig
-from typing import Dict, Any, ClassVar, Type
+from pydantic import ConfigDict
+from typing import Dict, Any
 from meta2fdp.secrets.base import SecretsProvider
 
 
@@ -12,15 +13,16 @@ class FDPConfig(BaseConfig):
     - public_dict: a method to return a dictionary of the configuration parameters that are safe to expose publicly (e.g., for logging or error messages)
     """
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     name: str
     config_type: str = "fdp"
     fdp_version: str
-    fdp_url: str  # Website URL of the FDP instance, e.g., 'https://fdp.example.com', used as base target for API calls.
+    URL: str  # Website URL of the FDP instance, e.g., 'https://fdp.example.com', used as base target for API calls.
+    environmentprovider: SecretsProvider | None = None
+    keyringprovider: SecretsProvider | None = None
     target_catalog_url: str | None = (
         None  # Optional URL of the target catalog to which data will be published, e.g., "https://fdp.example.com/catalog/UUID"
     )
-    environmentprovider: ClassVar[Type[SecretsProvider]] = SecretsProvider
-    keyringprovider: ClassVar[Type[SecretsProvider]] = SecretsProvider
 
     def validate_config(self):
         """Validate the configuration parameters."""
@@ -31,7 +33,7 @@ class FDPConfig(BaseConfig):
         return {
             "name": self.name,
             "config_type": self.config_type,
-            "fdp_url": self.fdp_url,
+            "fdp_url": self.URL,
             "fdp_version": self.fdp_version,
             "target_catalog_url": self.target_catalog_url,
         }
