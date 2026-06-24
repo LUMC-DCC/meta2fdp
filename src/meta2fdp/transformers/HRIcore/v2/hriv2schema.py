@@ -3,7 +3,7 @@
 import logging
 
 import pandas as pd
-from rdflib import Graph, URIRef, XSD
+from rdflib import Graph, URIRef
 from sempyro.dcat import DCATResource
 from meta2fdp.transformers.base import AbstractSchema
 from meta2fdp.config.transformer.transformer import TransformerConfig
@@ -123,7 +123,45 @@ class Hriv2Schema(AbstractSchema):
     def convert_class_to_rdf(self, HRIresource: DCATResource, uri: URIRef) -> Graph:
         return HRIresource.to_graph(uri)
 
-    def lang_literals(self, metadata: pd.Series, colname: str) -> list[LiteralField]:
+    def listed_properties(self, metadata: dict, colname: str) -> list | None:
+        content = metadata.get(colname, None)
+        if content is not None and not isinstance(content, list):
+            return [content]
+        else:
+            return content
+
+    def theme_properties(self, metadata: dict, colname: str) -> list[URIRef] | None:
+        themes = self.listed_properties(metadata, colname)
+        if themes is not None:
+            return [
+                URIRef(theme)
+                if theme.startswith("http")
+                else URIRef(
+                    "http://publications.europa.eu/resource/authority/data-theme/"
+                    + theme
+                )
+                for theme in themes
+            ]
+        else:
+            return None
+
+    def access_rights_properties(
+        self, metadata: dict, colname: str
+    ) -> list[URIRef] | None:
+        access_rights = metadata.get(colname, None)
+        if access_rights is not None:
+            return (
+                URIRef(access_rights)
+                if access_rights.startswith("http")
+                else URIRef(
+                    "http://publications.europa.eu/resource/authority/access-right/"
+                    + access_rights
+                )
+            )
+        else:
+            return None
+
+    def lang_literals(self, metadata: dict, colname: str) -> list[LiteralField] | None:
         """Create LiteralField objects from metadata, handling language tags.
 
         This function attempts to create LiteralField objects for a given column name
@@ -139,19 +177,39 @@ class Hriv2Schema(AbstractSchema):
         :raises Warning: If no matching property (tagged or untagged) is found in the metadata.
         """
         properties = []
-        if colname in metadata.index:
-            nolang_literal = LiteralField(value=metadata.loc[colname])
-            properties.append(nolang_literal)
+        if colname in metadata.keys():
+            # check if the property is a list and not empty, return it as is
+            if isinstance(metadata[colname], list):
+                if len(metadata[colname]) == 0:
+                    return None
+                return metadata[colname]
+            if not pd.isna(metadata[colname]) or metadata[colname] is not None:
+                nolang_literal = metadata[colname]
+                properties.append(nolang_literal)
         else:
             for langtag in self.langtags:
                 property_colname = colname + "_" + langtag
-                if property_colname in metadata.index:
-                    langtagged_literal = LiteralField(
-                        value=metadata.loc[property_colname], language=langtag
-                    )
-                    properties.append(langtagged_literal)
+                if property_colname in metadata.keys():
+                    if isinstance(metadata[property_colname], list):
+                        if len(metadata[property_colname]) == 0:
+                            return None
+                        for property in metadata[property_colname]:
+                            properties.append(
+                                LiteralField(value=property, language=langtag)
+                            )
+                    elif (
+                        not pd.isna(metadata[property_colname])
+                        or metadata[property_colname] is not None
+                    ):
+                        langtagged_literal = LiteralField(
+                            value=metadata[property_colname], language=langtag
+                        )
+                        logging.debug(
+                            f"found following langtagged_literal: {langtagged_literal}"
+                        )
+                        properties.append(langtagged_literal)
         if len(properties) == 0:
-            raise Warning(f"No {colname} property found in resource: {metadata}")
+            return None
         return properties
 
     def untag_defaults(self, defaults: dict, langtags: list):
@@ -260,9 +318,7 @@ class Hriv2Schema(AbstractSchema):
             )
         return self._vcard_model
 
-    def instantiate_HRIVcard(
-        self, metadata: pd.Series, prefix="contactPoint"
-    ) -> HRIVCard:
+    def instantiate_vcard(self, vcard_metadata: dict, prefix="") -> HRIVCard:
         """Modified instantiation of HRIVcard that has the recommended values
         removed.
 
@@ -273,14 +329,23 @@ class Hriv2Schema(AbstractSchema):
         :return: A HRIVcard pydantic class
         :rtype: HRIVCard
         """
-        vcard_cls = self.create_vcard_model()
-        vcard = vcard_cls(
-            hasEmail="mailto:" + metadata.loc[f"{prefix}_email"],
-            formatted_name=self.lang_literals(metadata, f"{prefix}_name").pop(),
+        logging.debug(
+            f"Instantiating vCard with metadata: {vcard_metadata} and prefix: {prefix}"
         )
+        kwargs = {
+            "formatted_name": vcard_metadata.get(prefix + "formatted_name", None),
+            "hasEmail": vcard_metadata.get(prefix + "hasEmail", None),
+            "contact_page": self.listed_properties(
+                vcard_metadata, prefix + "contact_page"
+            ),
+        }
+        vcard_cls = self.create_vcard_model()
+        logging.debug(vcard_cls.model_fields)
+        logging.debug(kwargs)
+        vcard = vcard_cls(**kwargs)
         return vcard
 
-    def instantiate_agent(self, metadata: pd.Series, agent_prefix: str) -> HRIAgent:
+    def instantiate_agent(self, agent_metadata: dict, prefix="") -> HRIAgent:
         """A function that uses the Series containing metadata and instantiates a
         SeMPyRO HRIAgent class. This could be information about a creator or publisher
          in a catalog for example.
@@ -296,16 +361,34 @@ class Hriv2Schema(AbstractSchema):
         :return: A SeMPyRO HRIAgent class which can be modified or converted to RDF.
         :rtype: HRIAgent
         """
-        agent_cls = self.create_agent_model()
-        return agent_cls(
-            name=self.lang_literals(metadata, f"{agent_prefix}_name"),
-            identifier=[metadata.loc[f"{agent_prefix}_identifier"]],
-            homepage=URIRef(metadata.loc[f"{agent_prefix}_url"]),
-            mbox="mailto:" + metadata.loc[f"{agent_prefix}_email"],
+        logging.debug(
+            f"Instantiating agent with metadata: {agent_metadata} and prefix: {prefix}"
         )
+        kwargs = {
+            "name": self.lang_literals(agent_metadata, prefix + "name"),
+            "identifier": self.listed_properties(agent_metadata, prefix + "identifier"),
+            "mbox": agent_metadata.get(prefix + "mbox", None),
+            "homepage": agent_metadata.get(prefix + "homepage", None),
+            "spatial": self.listed_properties(agent_metadata, prefix + "spatial"),
+            "publisher_note": agent_metadata.get(prefix + "publisher_note", None),
+            "publisher_type": agent_metadata.get(prefix + "publisher_type", None),
+            "type": agent_metadata.get(prefix + "type", None),
+        }
+        logging.debug(f"Instantiating agent with kwargs: {kwargs}")
+        agent_cls = self.create_agent_model()
+        logging.debug(f"Agent model fields: {agent_cls.model_fields}")
+        return agent_cls(**kwargs)
 
-    def instantiate_HRICatalog(
-        self, metadata: pd.Series, contact_point: HRIVCard, publisher: HRIAgent
+    def qualifiedattribution_graph(
+        self, attribution_metadata: pd.Series, prefix="auth1"
+    ) -> Graph:
+        QualifiedAttribution = self.instantiate_agent(attribution_metadata, prefix)
+        # somehow add Role to the agent
+
+        return QualifiedAttribution
+
+    def instantiate_catalog(
+        self, metadata: dict, creators=None, publisher=None, contact_point=None
     ) -> HRICatalog:
         """This a sempyro catalog constructor that tries to build a catalog resource description using
         the samplenavigator reference data as a default. See parent class for all possible options.
@@ -319,55 +402,72 @@ class Hriv2Schema(AbstractSchema):
         :return: Catalog class for reuse or manipulation
         :rtype: HRICatalog
         """
+        logging.debug(f"Instantiating catalog with metadata: {metadata}")
+        kwargs = {
+            "title": self.lang_literals(metadata, "title"),
+            "description": self.lang_literals(metadata, "description"),
+            "dataset": metadata.get("dataset", None),
+            "service": metadata.get("service", None),
+            "catalog": metadata.get("catalog", None),
+            "applicable_legislation": self.listed_properties(
+                metadata, "applicable_legislation"
+            ),
+            "has_part": metadata.get("has_part", None),
+            "homepage": metadata.get("homepage", None),
+            "theme": self.theme_properties(metadata, "theme"),
+            "keyword": self.lang_literals(metadata, "keyword"),
+            "license": metadata.get("license", None),
+        }
+        logging.debug(f"Instantiating catalog with kwargs: {kwargs}")
+        logging.debug(f"creator class type: {type(creators)}")
+        logging.debug(f"publisher class type: {type(publisher)}")
         catalog_cls = self.create_catalog_model()
+        logging.debug(f"Catalog model fields: {catalog_cls.model_fields}")
         catalog = catalog_cls(
-            title=self.lang_literals(metadata, "title"),
-            description=self.lang_literals(metadata, "description"),
-            contact_point=contact_point,
-            publisher=publisher,
-            dataset=[],
+            creator=creators, publisher=publisher, contact_point=contact_point, **kwargs
         )
         return catalog
 
-    def instantiate_HRIDataset(
-        self,
-        metadata: pd.Series,
-        contact_point: HRIVCard,
-        publisher: HRIAgent,
-        creators: list[HRIAgent],
-    ):
+    def instantiate_dataset(
+        self, metadata: dict, creators=None, publisher=None, contact_point=None
+    ) -> HRIDataset:
+        """This a sempyro dataset constructor that tries to build a dataset resource description using
+        the samplenavigator reference data as a default. See parent class for all possible options.
+
+        :param metadata: The metadata of a dataset
+        :type metadata: Series
+        :param contact_point: A dataset has one contactpoint (for now) and is described with a Vcard
+        :type contact_point: HRIVCard
+        :param publisher: Publisher should be LUMC, see configuration for default values that could be used.
+        :type publisher: HRIAgent
+        :param creators: A dataset can have multiple creators, these are also described with Agents.
+        :type creators: list[HRIAgent]
+        :return: Dataset class for reuse or manipulation
+        :rtype: HRIDataset
+        """
+        logging.debug(f"Instantiating dataset with metadata: {metadata}")
+        kwargs = {
+            "title": self.lang_literals(metadata, "title"),
+            "description": self.lang_literals(metadata, "description"),
+            "identifier": metadata.get("identifier", None),
+            "theme": self.theme_properties(metadata, "theme"),
+            "access_rights": self.access_rights_properties(metadata, "accessRights"),
+            "keyword": self.lang_literals(metadata, "keyword"),
+            "applicable_legislation": self.listed_properties(
+                metadata, "applicable_legislation"
+            ),
+            "number_of_records": metadata.get("numberOfRecords", None),
+            "number_of_unique_individuals": metadata.get(
+                "numberOfUniqueIndividuals", None
+            ),
+            # add more properties as needed
+        }
+
         dataset_cls = self.create_dataset_model()
         dataset = dataset_cls(
-            title=self.lang_literals(metadata, "title"),
-            description=self.lang_literals(metadata, "description"),
-            # release_date=parser.isoparse("2024-07-01T11:11:11Z"),
-            identifier=str(metadata.loc["identifier"]),
-            # modification_date=parser.isoparse("2024-06-04T13:36:10Z"),
-            contact_point=contact_point,
             creator=creators,
             publisher=publisher,
-            theme=[
-                URIRef(
-                    "http://publications.europa.eu/resource/authority/data-theme/"
-                    + metadata.loc["theme"]
-                )
-            ],
-            access_rights=URIRef(
-                "http://publications.europa.eu/resource/authority/access-right/"
-                + str(metadata.loc["accessRights"])
-            ),
-            keyword=metadata.loc["keywords"].split(
-                ","
-            ),  # HACK: assumes the keywords are stored as a comma seperated list
-            applicable_legislation=[URIRef(metadata.loc["applicable_legislation"])],
-            number_of_records=LiteralField(
-                value=str(metadata.loc["numberOfRecords"]),
-                datatype=XSD.nonNegativeInteger,
-            ),  # relevant in current samplenavigator usecase
-            number_of_unique_individuals=LiteralField(
-                value=str(metadata.loc["numberOfUniqueIndividuals"]),
-                datatype=XSD.nonNegativeInteger,
-            ),  # relevant in current samplenavigator usecase
-            distribution=[],  # not sure if this is ever needed, as a new distribution is automatically linked to it's dataset by the FDP
+            contact_point=contact_point,
+            **kwargs,
         )
         return dataset
