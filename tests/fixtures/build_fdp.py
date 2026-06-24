@@ -1,3 +1,4 @@
+import logging
 import os
 import requests
 from pathlib import Path
@@ -6,7 +7,7 @@ import subprocess
 import time
 import keyring
 import pytest
-
+import dotenv
 
 verbose = True
 
@@ -17,7 +18,10 @@ def get_apikey():
     response = requests.post(
         f"{os.environ['FDP_BASE_URL']}/tokens",
         data=json.dumps(
-            {"email": os.environ["FDP_EMAIL"], "password": os.environ["FDP_PASSWORD"]}
+            {
+                "email": os.environ["FDP_TEST_USERNAME"],
+                "password": os.environ["FDP_PASSWORD"],
+            }
         ),
         headers={"Accept": "application/json", "Content-Type": "application/json"},
     )
@@ -144,12 +148,10 @@ def update_schema(schemas, token, resource):
         status, message = post_schema(
             schema_uuid, token, f"tests/data/schema/{resource}.ttl", context
         )
-        if __debug__:
-            print(status)
-            print(message)
+
+        logging.info(f"Status: {status}")
         publish_schema(schema_uuid, token, "2.0.0", f"HRIv2.0.2{resource}")
-        if verbose:
-            print(f"{resource} schema updated at: {schema_uuid}")
+        logging.info(f"{resource} schema updated at: {schema_uuid}")
     else:
         raise Exception(f"No matching schemas found for dcat:{resource}.")
 
@@ -188,9 +190,11 @@ def setup(compose_dir=None, config=None):
         raise Exception("FDP server did not start within the expected time.")
     token = get_apikey()
     # keyring.delete_password(FDP_BASE_URL,EMAIL)
-    keyring.set_password(os.environ["FDP_BASE_URL"], os.environ["FDP_USERNAME"], token)
+    keyring.set_password(
+        os.environ["FDP_BASE_URL"], os.environ["FDP_TEST_USERNAME"], token
+    )
     os.environ[config["FDP"]["URL"]] = os.environ["FDP_BASE_URL"]
-    os.environ[config["FDP"]["username"]] = os.environ["FDP_USERNAME"]
+    os.environ[config["FDP"]["username"]] = os.environ["FDP_TEST_USERNAME"]
 
     # update schemas to the ones in the folder tests\data\schema
     schemas = get_schemas(token)
@@ -214,7 +218,7 @@ def teardown(compose_dir, config=None):
         # remove any API token saved in keyring for the FDP base URL
         try:
             keyring.delete_password(
-                os.environ["FDP_BASE_URL"], os.environ["FDP_USERNAME"]
+                os.environ["FDP_BASE_URL"], os.environ["FDP_TEST_USERNAME"]
             )
         except Exception:
             pass
@@ -230,9 +234,27 @@ def fdp_server(config):
     uses the `config` fixture to set environment variables.
     """
     compose_dir = Path(os.environ["FDP_COMPOSE_PATH"]).resolve()
-
-    setup(config=config, compose_dir=compose_dir)
+    dotenv.load_dotenv("tests\.env.test")  # Load env vars from .env.test file
+    # check if docker is running before trying to set up the server, to avoid long timeouts when docker is not running or not installed
     try:
-        yield
-    finally:
-        teardown(compose_dir, config=config)
+        subprocess.run(
+            ["docker", "info"],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError:
+        raise RuntimeError(
+            "Docker does not seem to be running or accessible. Please ensure Docker is installed and running before running the tests."
+        )
+    setup(config=config, compose_dir=compose_dir)
+    if config["stayalive"]:
+        try:
+            yield
+        finally:
+            logging.warning("fdp_server will stay alive after this test!")
+    else:
+        try:
+            yield
+        finally:
+            teardown(compose_dir, config=config)
