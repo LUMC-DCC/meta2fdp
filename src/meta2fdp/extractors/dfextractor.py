@@ -58,8 +58,9 @@ class DFExtractor(BaseExtractor):
         missing_columns = []
 
         for output_name, input_name in required_properties.items():
-            logging.debug(f"{output_name} output_name")
-            logging.debug(f"{input_name} input_name")
+            logging.debug(
+                f"mapping expected output column '{output_name}' to input column '{input_name}'"
+            )
             if input_name is dict:
                 continue
 
