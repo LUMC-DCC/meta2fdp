@@ -1,6 +1,7 @@
 """This module contains the implementation of the HRIV2Schema class, which is a specific schema for converting metadata into RDF format using the SeMPyRO library. The class provides methods for instantiating various SeMPyRO classes such as HRICatalog, HRIDataset, HRIVCard, and HRIAgent based on the provided metadata. It also includes a method for converting these classes into RDF graphs. The schema configuration can be set and updated as needed."""
 
 import logging
+from types import NoneType
 
 import pandas as pd
 from rdflib import Graph, URIRef
@@ -15,7 +16,7 @@ from sempyro.hri_dcat import (
     HRIAgent,
 )
 from sempyro import RDFModel
-from typing import Annotated
+from typing import Annotated, Union
 from pydantic import Field, create_model, AnyUrl, model_validator
 from pydantic_core._pydantic_core import PydanticUndefinedType
 
@@ -249,28 +250,132 @@ class Hriv2Schema(AbstractSchema):
         """
         tagless_default_keys = self.untag_defaults(defaults, self.langtags)
         new_fields = {}
-        for f_name, f_info in model_cls.model_fields.items():
-            # check if no default value is set in parent class: This could also be removed so that all defaults are reset.
-            if (
-                type(getattr(f_info, "default")) is PydanticUndefinedType
-                or getattr(f_info, "default") is None
+
+        def _is_list_annotation(annotation):
+            if annotation in (
+                list[LiteralField],
+                list[Union[str, LiteralField]],
+                list[URIRef],
+                list[Union[URIRef, AnyUrl]],
             ):
-                # check if property name is written in the default_values, the reverse check if a property has no value assigned could also work and would show all available properties for classes
+                return True
+            origin = getattr(annotation, "__origin__", None)
+            if origin is list:
+                return True
+            if origin is Union:
+                return any(
+                    getattr(arg, "__origin__", None) is list
+                    for arg in getattr(annotation, "__args__", ())
+                )
+            return False
+
+        def _is_single_uri_annotation(annotation):
+            return annotation in (
+                URIRef,
+                Union[URIRef, AnyUrl],
+                Union[AnyUrl, URIRef],
+                Union[URIRef, NoneType],
+                Union[AnyUrl, NoneType],
+                Union[AnyUrl, URIRef, NoneType],
+            )
+
+        def _is_resource_class(annotation):
+            # Treat known HRI/DCAT resource classes as resource annotations
+            resource_types = (HRICatalog, HRIDataset, HRIVCard, HRIAgent, DCATResource)
+
+            if annotation in resource_types:
+                return True
+
+            origin = getattr(annotation, "__origin__", None)
+            if origin is Union:
+                return any(
+                    getattr(arg, "__origin__", None) is list
+                    and False
+                    or arg in resource_types
+                    for arg in getattr(annotation, "__args__", ())
+                )
+
+            return False
+
+        for f_name, f_info in model_cls.model_fields.items():
+            default_is_undefined = (
+                type(getattr(f_info, "default")) is PydanticUndefinedType
+            )
+            default_is_none = getattr(f_info, "default") is None
+            field_is_class = _is_resource_class(f_info.annotation)
+            if field_is_class:
+                logging.debug(
+                    f"found class {f_name} in model class {model_cls.__name__}"
+                )
+                continue
+            if default_is_undefined or default_is_none:
                 if f_name in tagless_default_keys:
-                    # Check what datatype the property default value should be
-                    if (
-                        getattr(f_info, "json_schema_extra")["rdf_type"]
-                        == "rdfs_literal"
-                    ):
-                        setattr(
-                            f_info,
-                            "default",
-                            self.lang_literals(pd.Series(data=defaults), f_name),
-                        )
-                    elif getattr(f_info, "json_schema_extra")["rdf_type"] == "uri":
-                        setattr(f_info, "default", AnyUrl(defaults[f_name]))
+                    logging.debug(
+                        f"Processing default value for {f_name}: {defaults.get(f_name)}"
+                    )
+                    rdf_type = getattr(f_info, "json_schema_extra", {}).get("rdf_type")
+                    if rdf_type == "rdfs_literal":
+                        captured_literals = self.lang_literals(defaults, f_name) or []
+                        if _is_list_annotation(f_info.annotation):
+                            if captured_literals:
+                                logging.debug(
+                                    f"Setting default for {f_name} as list of LiteralFields: {captured_literals}"
+                                )
+                                setattr(f_info, "default", captured_literals)
+                        else:
+                            if len(captured_literals) > 1:
+                                logging.warning(
+                                    f"Multiple default values found for {f_name} but only single value allowed, "
+                                    f"using the first in list: {captured_literals[0]}"
+                                )
+                            setattr(
+                                f_info,
+                                "default",
+                                captured_literals[0] if captured_literals else None,
+                            )
+                    elif rdf_type == "uri":
+                        default_value = defaults.get(f_name)
+                        if default_value is None:
+                            continue
+
+                        if _is_list_annotation(f_info.annotation):
+                            uri_values = (
+                                default_value
+                                if isinstance(default_value, list)
+                                else [default_value]
+                            )
+                            list_of_uris = [URIRef(uri) for uri in uri_values]
+                            logging.debug(
+                                f"Setting default for {f_name} as list of URIs: {list_of_uris}"
+                            )
+                            setattr(f_info, "default", list_of_uris)
+                        elif _is_single_uri_annotation(f_info.annotation):
+                            if isinstance(default_value, list):
+                                if len(default_value) > 1:
+                                    logging.debug(
+                                        f"Multiple defaults found for {f_name} but only single value allowed, "
+                                        f"using the first: {default_value[0]}"
+                                    )
+                                default_value = (
+                                    default_value[0] if default_value else None
+                                )
+                            else:
+                                logging.debug(
+                                    f"Setting default for {f_name} as URI: {default_value}"
+                                )
+                                setattr(
+                                    f_info,
+                                    "default",
+                                    URIRef(default_value)
+                                    if default_value is not None
+                                    else None,
+                                )
+                        else:
+                            setattr(f_info, "default", URIRef(default_value))
                     else:
-                        print(f"{f_name} has a different datatype")
+                        logging.error(
+                            f"{f_name} has a different datatype than expected, check the configuration or the model definition"
+                        )
             new_fields[f_name] = Annotated[
                 getattr(f_info, "annotation") | None,
                 *getattr(f_info, "metadata"),
