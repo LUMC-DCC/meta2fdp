@@ -84,7 +84,7 @@ class AbstractSchema(metaclass=ABCMeta):
             publisher_type=None,
         )
 
-    def instantiate_HRIVcard(self, metadata: Series, prefix="contactPoint") -> HRIVCard:
+    def instantiate_vcard(self, metadata: Series, prefix="contactPoint") -> HRIVCard:
         """A function that uses the Series containing metadata and instantiates a
         SeMPyRO HRIAgent class. HRIVCard's are used to define what values are
         associated to contactpoints in both Catalogs and Datasets.
@@ -108,7 +108,7 @@ class AbstractSchema(metaclass=ABCMeta):
         )
         return vcard
 
-    def instantiate_HRICatalog(
+    def instantiate_catalog(
         self,
         metadata: Series,
         contact_point: HRIVCard,
@@ -151,7 +151,7 @@ class AbstractSchema(metaclass=ABCMeta):
         )
         return catalog
 
-    def instantiate_HRIDataset(
+    def instantiate_dataset(
         self,
         metadata: Series,
         creators: Union[list[HRIAgent], None],
