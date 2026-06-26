@@ -16,6 +16,7 @@ dependencies = [
     "rdflib>=7.6.0",
     "requests>=2.32.5",
     "sempyro>=2.1.0",
+    "pymssql==2.3.7"
 ]
 
 [project.scripts]
