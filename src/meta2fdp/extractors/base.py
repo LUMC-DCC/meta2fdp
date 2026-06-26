@@ -22,7 +22,7 @@ from pandas import DataFrame
 from pyparsing.common import Any
 
 
-class AbstractExtractor(metaclass=ABCMeta):
+class BaseExtractor(metaclass=ABCMeta):
     """An abstract class that defines functions and behaviours desired
     from a parser module.
     """
