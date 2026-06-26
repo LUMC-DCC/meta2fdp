@@ -19,7 +19,9 @@ class FDPClient(AbstractClient):
     def __init__(self, config: FDPConfig) -> None:
         self.config = config
         self.parent_resource = self.config.target_catalog_url
-        self.URL = self.config.get_fdp_url()
+        self.URL = self.config.URL
+        self.environmentprovider = config.environmentprovider
+        self.keyringprovider = config.keyringprovider
 
     @override
     def connection_status(self):
@@ -30,20 +32,18 @@ class FDPClient(AbstractClient):
         :type url: String
         """
         try:
-            response = requests.get(self.config.environmentprovider.get("FDP_URL"))
+            response = requests.get(self.URL, timeout=5)
             if response.status_code == 200:
                 if __debug__:
                     logging.info("Successfully connected to FDP")
                 return response.status_code
             else:
                 logging.error(
-                    f"Failed to connect to {self.config.environmentprovider.get('FDP_URL')}. Status code: {response.status_code}"
+                    f"Failed to connect to {self.URL}. Status code: {response.status_code}"
                 )
                 return response.status_code
         except requests.exceptions.RequestException as e:
-            logging.error(
-                f"Error connecting to {self.config.environmentprovider.get('FDP_URL')}: {e}"
-            )
+            logging.error(f"Error connecting to {self.URL}: {e}")
 
     @override
     def get_api_token(self):
@@ -56,8 +56,8 @@ class FDPClient(AbstractClient):
         :return: FDP API token
         :rtype: String
         """
-        return self.config.keyringprovider.get(
-            self.URL, self.config.environmentprovider.get("FDP_USERNAME")
+        return self.keyringprovider.get_info(
+            self.URL, self.environmentprovider.get_info(name="FDP_USERNAME")
         )
 
     @override

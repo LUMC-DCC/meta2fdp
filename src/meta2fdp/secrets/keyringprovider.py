@@ -7,5 +7,5 @@ class KeyringSecretsProvider(SecretsProvider):
     This allows for secure storage and retrieval of secrets using the underlying keyring implementation of the operating system.
     """
 
-    def get(self, service_name: str, username: str) -> str:
+    def get_info(self, service_name: str, username: str) -> str:
         return keyring.get_password(service_name, username)

@@ -15,14 +15,14 @@ def test_env_secrets_provider_returns_env_value(monkeypatch):
     monkeypatch.setenv("TEST_SECRET_VALUE", "supersecret")
     provider = EnvSecretsProvider(env_path="tests\.env.test")
 
-    assert provider.get("TEST_SECRET_VALUE") == "supersecret"
+    assert provider.get_info("TEST_SECRET_VALUE") == "supersecret"
 
 
 def test_env_secrets_provider_returns_none_when_missing(monkeypatch):
     monkeypatch.delenv("TEST_SECRET_MISSING", raising=False)
     provider = EnvSecretsProvider(env_path="tests\.env.test")
 
-    assert provider.get("TEST_SECRET_MISSING") is None
+    assert provider.get_info("TEST_SECRET_MISSING") is None
 
 
 def test_keyring_secrets_provider_delegates_to_keyring(monkeypatch):
@@ -38,7 +38,7 @@ def test_keyring_secrets_provider_delegates_to_keyring(monkeypatch):
     )
 
     provider = KeyringSecretsProvider()
-    result = provider.get("service-name", "api_token")
+    result = provider.get_info("service-name", "api_token")
 
     assert result == "keyring-secret"
     assert recorded["args"] == ("service-name", "api_token")
@@ -61,7 +61,7 @@ def test_composite_secrets_provider_returns_first_available_value():
         ]
     )
 
-    assert provider.get("any-name") == "first-available"
+    assert provider.get_info("any-name") == "first-available"
 
 
 def test_composite_secrets_provider_raises_key_error_when_missing():
@@ -73,4 +73,4 @@ def test_composite_secrets_provider_raises_key_error_when_missing():
     )
 
     with pytest.raises(KeyError, match="Secret 'missing' not found"):
-        provider.get("missing")
+        provider.get_info("missing")

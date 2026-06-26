@@ -91,7 +91,7 @@ def test_fdp_config_public_dict_contains_expected_fields():
     config = FDPConfig(
         name="fdp_client",
         fdp_version="1.0",
-        fdp_url="https://fdp.example.org",
+        URL="https://fdp.example.org",
         target_catalog_url="https://fdp.example.org/catalog/1",
     )
 
