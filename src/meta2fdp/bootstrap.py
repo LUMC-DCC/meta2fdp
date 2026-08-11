@@ -6,6 +6,8 @@ from meta2fdp.secrets.environmentprovider import EnvSecretsProvider
 from meta2fdp.secrets.keyringprovider import KeyringSecretsProvider
 from meta2fdp.transformers.registry import TransformerRegistry
 
+from meta2fdp.config.transformer.transformer import TransformerConfig
+
 
 def register_transformers():
     registry = TransformerRegistry()
@@ -41,3 +43,23 @@ def register_modules():
 
 def register_models():
     return register_transformers()
+
+
+def register_transformer_configs():
+    # potentially, this could be extended to read from a configuration file or database to dynamically register transformer configurations
+    HRIcore_v2_LUMC = TransformerConfig(
+        name="HRIcore_v2_LUMC",
+        config_type="transformer",
+        schema_name="HRIcore",
+        schema_version="v2",
+        default_values={},
+        language_tags=["en", "nl"],
+    )
+    HRIcore_v2_LUMC.get_default_values("tests/config/default_values.yaml")
+    return {"HRIcore_v2_LUMC": HRIcore_v2_LUMC}
+
+
+# Deprecated: this module provides a legacy registry loader for tests and bootstrap scenarios.
+# New integrations should register connectors, extractors, transformers, and FDP clients
+# through explicit registry objects or configuration-driven factories rather than relying
+# on the legacy bootstrap module.

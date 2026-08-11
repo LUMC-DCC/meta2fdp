@@ -1,141 +1,126 @@
 # Meta2FDP
 
-`meta2fdp` is a Python package designed to automate the extraction, transformation, and publication of metadata to a FAIR Data Point (FDP) following the [Health‑RI Core Metadata Schema](https://github.com/Health-RI/health-ri-metadata). It enables programmatic onboarding of metadata from a variety of source systems to an FDP, making the process scalable, repeatable, and aligned with national FAIR metadata standards.
+`meta2fdp` is a Python framework for extracting metadata from source systems, transforming that metadata into RDF, and publishing it to a FAIR Data Point (FDP) instance.
 
-## Purpose
+## Why use meta2fdp?
 
-`meta2fdp` provides a structured way to build automated ETL pipelines that:
+- Build reusable metadata pipelines with connector, extractor, transformer, and publishing components.
+- Keep source-specific logic separate from FDP publishing logic.
+- Extend the project with new connectors, extractors, schema transformers, or FDP clients.
+- Use existing Health-RI schema support and RDF publishing workflows.
 
-* Extract information (metadata) from internal or external data source systems
-* Transform the metadata into RDF compliant with the Health‑RI schema
-* Publish (create or update) the metadata to an FDP instance
+## Quick start
 
-The package reduces manual work, ensures schema compliance, and supports reuse of existing metadata already collected in systems such as Opal/Mica, SampleNavigator, SQL sources, and CSV or Excel files.
+Install the project and dependencies:
 
-## Key features
+```bash
+uv sync
+python -m pip install -e .
+```
 
-* Source metadata ingestion with built-in parsers
+Run the package entry point to verify installation:
 
-    * OBiBa Opal/Mica (MongoDB/SQL sources)
-    * SampleNavigator (SQL)
-    * Excel/CSV-based metadata templates
+```bash
+meta2fdp
+```
 
-* Schema‑aware transformation
+## Example usage
 
-    * Uses the Health‑RI `SemPyRo` Pydantic classes to map source-system metadata into valid RDF resources.
-    * Ensures mandatory fields and schema structure are created correctly.
+Use the Python API to assemble a pipeline:
 
-* Automated metadata publishing to FDP
+```python
+from meta2fdp.config.connector.csvconnector import CSVConnectorConfig
+from meta2fdp.config.extractor.extractor import ExtractorConfig
+from meta2fdp.config.transformer.transformer import TransformerConfig
+from meta2fdp.config.fdp.fdpconfig import FDPConfig
+from meta2fdp.pipeline.publish_metadata import PublishMetadataPipeline
+from meta2fdp.bootstrap import register_modules
 
-    * Uploads new catalog and dataset metadata
-    * Updates existing FDP resources using identifiers
-    * Maintains relationships and resource links
-    * Applies SHACL validation via the FDP backend
-    * Minimizes manual editing after upload
+registries = register_modules()
+transformer_configs = register_transformer_configs()
 
+connector_config = CSVConnectorConfig(
+    name="csv_connector",
+    connector_name="CSVConnector",
+    connector_type="csv",
+    separator=";",
+    header=0,
+    catalog_input_file=Path("tests/data/input/Health-RI_LUMC_catalogue.csv"),
+    dataset_input_file=Path("tests/data/input/Health-RI_LUMC_datasets.csv"),
+)
+
+extractor_config = ExtractorConfig(
+    name="df_extractor",
+    config_type="extractor",
+    extractor_name="DFExtractor",
+    extractor_type="df",
+    mapping_file=Path("tests/config/mappings_test.yaml"),
+)
+extractor_config.get_mappings()  # Load mappings from the specified mapping file
+
+schema_config = transformer_configs["HRIcore_v2_LUMC"]
+
+fdp_config = FDPConfig(
+    name="FDPClient",
+    fdp_version="v2",
+    URL="localhost",
+    environmentprovider=registries["secrets"]["env"](),
+    keyringprovider=registries["secrets"]["keyring"](),
+
+)
+
+pipeline = PublishCatalogsDatasetsMetadataPipeline(
+    connector_config=connector_config,
+    extractor_config=extractor_config,
+    schema_config=schema_config,
+    FDP_config=fdp_config,
+    registries=registries,
+)
+
+pipeline.run()
+```
+
+## Project structure
+
+- `src/meta2fdp/connectors/` — source system connectors
+- `src/meta2fdp/extractors/` — extractors for raw source data
+- `src/meta2fdp/transformers/` — transformer modules and schema adaptors
+- `src/meta2fdp/fdp/` — FAIR Data Point clients
+- `src/meta2fdp/pipeline/` — orchestration layer linking the pipeline stages
+- `src/meta2fdp/config/` — typed configuration objects
+- `docs/` — Sphinx documentation source and examples
 
 ## Installation
 
-Installation of Python package dependencies using `uv` package manager.
-
-```{bash}
-# install meta2fdp and Python dependencies with uv
+```bash
 uv sync
-source .venv/bin/activate
+python -m pip install -e .
 ```
 
-Make sure to have a keyring backend configured.
+If you prefer not to use `uv`, install with:
 
-
-
-## Repository overview
-
-```
-meta2fdp/
-│
-└─ src/
-   ├─ meta2fdp/
-   │  │
-   │  ├─ __init__.py
-   │  │
-   │  ├─ config/                Definition of all configurable aspects:
-   │  │  │                        connector types, schemas and versions, FDP endpoints,
-   │  │  │                        pipeline settings; typed with Pydantic
-   │  │  ├─ base.py             Shared configurations structures, common validation logic
-   │  │  ├─ connector.py
-   │  │  ├─ schema.py
-   │  │  └─ etc.
-   │  │
-   │  ├─ connectors/            Establish and manage connections to data sources
-   │  │  ├─ base.py             Abstract connector
-   │  │  ├─ registry.py         Registry of implemented connectors
-   │  │  └─ csv.py              Connector for file-based / CSV data sources
-   │  │
-   │  ├─ extractors/            Extract raw information from data sources and convert to
-   │  │  │                        pandas.DataFrame
-   │  │  ├─ base.py
-   │  │  ├─ registry.py         Registry of implemented extractors
-   │  │  └─ csv.py
-   │  │
-   │  ├─ models/                Core domain models expressed as Pydantic classes
-   │  │  ├─ base.py             Abstract base model for metadata records
-   │  │  ├─ registry.py         Registry of implemented schemas
-   │  │  └─ HRIcore/v2/         Keep different schemas and versions separate
-   │  │     ├─ dataset.py       SeMPyRO-based dataset model
-   │  │     └─ catalog.py
-   │  │
-   │  ├─ transformers/          Processing of extracted information and mapping to schema
-   │  │  │                        pandas.DataFrame → Pydantic model → RDF graph
-   │  │  └─ registry.py         Registry of implemented transformers
-   │  │
-   │  ├─ rdf/                   RDF-related utilities, including graph creation and
-   │  │                           manipulation
-   │  │
-   │  ├─ fdp/                   Client for FAIR Data Point API interactions
-   │  │  ├─ base.py             Abstract base
-   │  │  ├─ registry.py         Registry of implemented FDP types
-   │  │  └─ client.py           Low-level operations: connect, authenticate, publish
-   │  │
-   │  └─ pipeline/              Configuration-driven pipeline connecting all steps
-   │     ├─ base.py
-   │     └─ publish.py          Publish metadata from source to FDP using given schema:
-   │                              connector → extractor → transformer → rdf → fdp
-   │
-   └─ logging.py                Log pipeline parameters, execution steps, results, errors
+```bash
+python -m pip install -e .
 ```
 
-## Development
+## Documentation
 
-Python packages are installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
+Build the documentation from the `docs` folder:
 
-```
-# install missing packages with uv
-# uv add <package-name>
-# uv add --dev <package-name> # for development dependencies
-```
-
-```
-# enable pre-commit hooks for linting and formatting
-pre-commit install
+```bash
+cd docs
+sphinx-build -M html source build
 ```
 
-When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
+Then open `docs/build/index.html`.
 
-```
-# initialize local configuration file for Git submodules and fetch data from projects
-git submodule init
-git submodule update
-```
+## Contributing
 
-### Documentation
+See `CONTRIBUTING.md` for details on how to contribute new modules, tests, and documentation.
 
-```
-# Clean existing doc files
-rm -r docs/build/*
-# Build documentation
-#sphinx-build -M dirhtml docs/source docs/build
-make html
-```
+## License
+
+This project is licensed under the GNU GPL v3 or later.
 
 <!--
 
