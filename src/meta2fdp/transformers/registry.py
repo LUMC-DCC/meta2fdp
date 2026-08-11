@@ -11,7 +11,7 @@ from typing import Dict, Type
 from pydantic import BaseModel
 
 
-class ModelRegistry:
+class TransformerRegistry:
     """Registry for metadata schema modules.
     This class allows for registering and retrieving metadata schema modules by name and version.
     """

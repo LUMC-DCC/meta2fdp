@@ -11,7 +11,7 @@ dataset:
 
 contactPoint:
   hasEmail: mailto:rds@example.org
-  formatted_name: contact_name
+  formatted_name: "contact name"
 
 publisher:
   name_en: Leiden University Medical Center

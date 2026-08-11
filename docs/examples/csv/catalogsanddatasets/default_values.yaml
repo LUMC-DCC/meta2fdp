@@ -1,0 +1,31 @@
+catalog:
+  applicable_legislation: https://example.org/policy
+  geographical_coverage: https://example.org/country
+  homepage: https://example.org/catalog
+
+dataset:
+  theme: https://example.org/theme
+  access_rights: https://example.org/access-rights
+  applicable_legislation: https://example.org/policy
+
+contactPoint:
+  hasEmail: mailto:contact@example.org
+  formatted_name: Example Contact
+
+publisher:
+  name_en: Example Publisher
+  name_nl: Voorbeeld uitgever
+  mbox: mailto:contact@example.org
+  identifier: https://example.org/publisher
+  homepage: https://example.org
+  spatial: https://example.org/country
+  publisher_type: https://example.org/publisher-type
+  publisher_note_nl: Example publisher note
+
+creator:
+  name_en: Example Creator
+  name_nl: Voorbeeld maker
+  mbox: mailto:creator@example.org
+  identifier: https://example.org/creator
+  homepage: https://example.org/creator
+  spatial: https://example.org/country

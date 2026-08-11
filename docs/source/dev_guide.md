@@ -1,38 +1,60 @@
 # Developer guide
 
-Python packages are installed with [`uv` Python package manager](https://docs.astral.sh/uv/).
+This project uses `uv` for dependency management and supports editable installs with `pip`.
 
+## Install dependencies
+
+```bash
+uv sync
+python -m pip install -e .
 ```
-# install missing packages with uv
-uv add <package-name>
 
-# for development dependencies
-uv add --dev <package-name>
+If you do not use `uv`, you can also install directly with:
+
+```bash
+python -m pip install -e .
 ```
 
-Enable pre-commit hooks for linting and formatting
+## Development workflow
 
-```
+- Create a feature branch
+- Add or update tests for new behavior
+- Update documentation when behavior changes
+- Run `python -m pytest` before opening a pull request
+
+## Pre-commit hooks
+
+Enable formatting and linting hooks with:
+
+```bash
 pre-commit install
 ```
 
-When running tests, submodules are used to deploy an FDP locally for testing. This requires **Docker**.
+## Tests
 
+Run all tests with:
+
+```bash
+python -m pytest
 ```
-# initialize local configuration file for Git submodules and fetch data from projects
+
+## Submodules and local FDP testing
+
+Some integration tests use Git submodules and local FDP fixtures. Initialize submodules with:
+
+```bash
 git submodule init
 git submodule update
 ```
 
 ## Build documentation
 
-```
-# Clean existing build files
+```bash
 rm -r docs/build/*
-# Create module documentation
-cd docs/
+cd docs
 sphinx-apidoc -o source/apidoc ../src/meta2fdp
-# Build documentation in docs/
-make html
+sphinx-build -M html source build
 ```
+
+If you are on Windows, use a terminal that supports the commands above or substitute the equivalent filesystem commands.
 

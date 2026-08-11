@@ -1,0 +1,2 @@
+title,description,datasets,publisher_name,publisher_email,publisher_identifier,publisher_url,contactPoint_name,contactPoint_email,creator_name,creator_email,creator_identifier,creator_url
+Example Catalog,Example catalog description,example-dataset-1;example-dataset-2,Example Publisher,contact@example.org,https://ror.org/0000-0000-0000-0000,https://example.org,Example Contact,contact@example.org,Example Creator,creator@example.org,https://ror.org/0000-0000-0000-0001,https://example.org/creator
