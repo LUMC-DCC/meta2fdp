@@ -57,9 +57,3 @@ def register_transformer_configs():
     )
     HRIcore_v2_LUMC.get_default_values("tests/config/default_values.yaml")
     return {"HRIcore_v2_LUMC": HRIcore_v2_LUMC}
-
-
-# Deprecated: this module provides a legacy registry loader for tests and bootstrap scenarios.
-# New integrations should register connectors, extractors, transformers, and FDP clients
-# through explicit registry objects or configuration-driven factories rather than relying
-# on the legacy bootstrap module.
