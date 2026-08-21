@@ -44,7 +44,7 @@ Some integration tests use Git submodules and local FDP fixtures. Initialize sub
 
 ```bash
 git submodule init
-git submodule update
+git submodule update --remote
 ```
 
 ## Build documentation
