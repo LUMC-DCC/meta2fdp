@@ -1,6 +1,6 @@
 """
 Interface to interact FDP content
-source: https://github.com/Orphanet/orphadata-fdp-populator/blob/master/FDPClient.py
+Inspired by: https://github.com/Orphanet/orphadata-fdp-populator/blob/master/FDPClient.py
 """
 
 from meta2fdp.fdp.abstractclient import AbstractClient

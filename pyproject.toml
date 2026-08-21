@@ -1,20 +1,20 @@
 [project]
 name = "meta2fdp"
-version = "0.1.0"
+version = "1.0.0"
 description = "Adapters between source systems and a FAIR Data Point for publishing metadata."
 readme = "README.md"
-license = { text = "GPL-3.0-or-later" }
+license = { text = "Apache-2.0" }
 keywords = ["fair-data-point", "metadata", "rdf", "etl", "health-ri", "pipeline"]
 authors = [
     { name = "Karolis Cremers", email = "k.m.p.cremers@lumc.nl" },
     { name = "Anna Niehues", email = "a.niehues@lumc.nl" }
 ]
-urls = { Homepage = "https://github.com/FAIRDataTeam/meta2fdp", Repository = "https://github.com/FAIRDataTeam/meta2fdp" }
+urls = { Homepage = "https://github.com/LUMC-DCC/meta2fdp", Repository = "https://github.com/LUMC-DCC/meta2fdp" }
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython"
