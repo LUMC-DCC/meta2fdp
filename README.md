@@ -63,7 +63,7 @@ schema_config = transformer_configs["HRIcore_v2_LUMC"]
 fdp_config = FDPConfig(
     name="FDPClient",
     fdp_version="v2",
-    URL="localhost",
+    URL="http://localhost",
     environmentprovider=registries["secrets"]["env"](),
     keyringprovider=registries["secrets"]["keyring"](),
 
