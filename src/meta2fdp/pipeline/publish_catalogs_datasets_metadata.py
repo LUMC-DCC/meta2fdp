@@ -139,18 +139,13 @@ class PublishCatalogsDatasetsMetadataPipeline(Pipeline):
             except Exception:
                 parsed_datasets = None
 
-        # setup a lookup for datasets by title to facilitate matching with catalog entries
+        # Set up a lookup for datasets by their parsed identifier.
         dataset_lookup = None
         if parsed_datasets is not None and len(parsed_datasets) > 0:
-            dataset_title_col = (
-                "title" if "title" in parsed_datasets[0].keys() else "title_en"
-            )
-
-            def dataset_lookup_func(row):
-                return row[dataset_title_col] if dataset_title_col in row else None
-
             dataset_lookup = {
-                dataset_lookup_func(row): _ for _, row in enumerate(parsed_datasets)
+                row["identifier"]: row
+                for row in parsed_datasets
+                if row.get("identifier") is not None
             }
 
         for catalog_metadata in parsed_catalogs:
@@ -186,21 +181,20 @@ class PublishCatalogsDatasetsMetadataPipeline(Pipeline):
             if hasattr(client, "publish_resource"):
                 client.publish_resource(catalog_url)
 
-            datasets_raw = catalog_metadata.get("datasets")
-            dataset_titles = []
-            if isinstance(datasets_raw, str):
-                dataset_titles = [
-                    item.strip() for item in datasets_raw.split(",") if item.strip()
+            dataset_ids = catalog_metadata.get("dataset_ids", [])
+            if isinstance(dataset_ids, str):
+                dataset_ids = [
+                    dataset_id.strip() for dataset_id in dataset_ids.split(",")
                 ]
 
-            for dataset_title in dataset_titles:
-                if dataset_lookup is None or dataset_title not in dataset_lookup.index:
-                    logging.warning(
-                        f"Dataset '{dataset_title}' was not found in the parsed dataset metadata."
+            for dataset_id in dataset_ids:
+                if dataset_lookup is None or dataset_id not in dataset_lookup:
+                    logging.debug(
+                        f"Dataset '{dataset_id}' was not found in the parsed dataset metadata."
                     )
                     continue
 
-                dataset_metadata = dataset_lookup.loc[dataset_title]
+                dataset_metadata = dataset_lookup[dataset_id]
                 creators = [
                     schema_converter.instantiate_agent(dataset_metadata, "creator")
                 ]
