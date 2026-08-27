@@ -8,7 +8,7 @@ mappings:
     geographical_coverage: null
     temporal_coverage: null
     homepage: null
-    dataset_ids: datasets
+    dataset_ids: datasets # This is used in the pipeline class to obtain which datasets are from which catalog
     creator:
       name: creator_name
       mbox: creator_email
