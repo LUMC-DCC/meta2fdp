@@ -24,34 +24,13 @@ def data_dir(test_dir) -> Path:
 
 
 @pytest.fixture(scope="session")
-def config_path(test_dir) -> Path:
-    """Return the path to the configuration YAML file for the CSV parser tests."""
-    return test_dir / "config" / "configuration_csv.yaml"
-
-
-@pytest.fixture(scope="session")
-def config(config_path):
-    """Load the configuration from the YAML file and return it as a dictionary."""
-    import yaml
-
-    with open(config_path, "r") as fh:
-        # TODO: this should be part of src utils, and handle all config files, not just the one for csvparser tests
-        cfg = yaml.safe_load(fh)
-        file_paths = {}
-        for k, v in (cfg.get("file_paths") or {}).items():
-            if v is None:
-                file_paths[k] = None
-                continue
-            p = Path(v)
-            file_paths[k] = p
-        cfg["file_paths"] = file_paths
-        return cfg
-
-
-@pytest.fixture(scope="session")
-def model_config(test_dir):
-    """Load the model/schema configuration from the YAML file and return it as a dictionary."""
-    import yaml
-
-    with open(test_dir / "config" / "model_config_test.yaml", "r") as fh:
-        return yaml.safe_load(fh)
+def config():
+    # used in build_fdp fixture to set env vars for the client configuration, and potentially in the future to set other configuration values for the test
+    return {
+        "FDP": {
+            "URL": "FDP_URL",
+            "username": "FDP_USERNAME",
+        },
+        "mode": {"publish": True},
+        "stayalive": False,  # set to True to keep the FDP server running after the tests are done, for debugging purposes
+    }
