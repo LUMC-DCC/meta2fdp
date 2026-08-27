@@ -72,19 +72,6 @@ def transformer_config():
     return transformer_config
 
 
-@pytest.fixture(scope="session")
-def config():
-    # used in build_fdp fixture to set env vars for the client configuration, and potentially in the future to set other configuration values for the test
-    return {
-        "FDP": {
-            "URL": "FDP_URL",
-            "username": "FDP_USERNAME",
-        },
-        "mode": {"publish": True},
-        "stayalive": True,
-    }
-
-
 # set up a local FDP server before the client to allow for different version and URL settings
 fdp_server
 
