@@ -1,4 +1,4 @@
-import meta2fdp.transformers.HRIcore.v2 as HRIcore_v2
+import meta2fdp.transformers.HRIcore.v2.hriv2schema as HRIcore_v2
 from meta2fdp.connectors.csvconnector import CSVConnector
 from meta2fdp.extractors.dfextractor import DFExtractor
 from meta2fdp.fdp.fdpclient import FDPClient
