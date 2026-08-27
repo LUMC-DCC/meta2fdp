@@ -7,7 +7,7 @@ catalog:
 dataset:
   theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
   access_rights: http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC
-  applicablelegislation: http://data.europa.eu/eli/reg/2025/327/oj
+  applicable_legislation: http://data.europa.eu/eli/reg/2025/327/oj
 
 contactPoint:
   hasEmail: mailto:rds@example.org
