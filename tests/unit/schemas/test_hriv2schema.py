@@ -164,7 +164,7 @@ class TestCatalog:
         )
 
         result = schema.instantiate_catalog(
-            catalog_metadata, contact_point=vcard, publisher=agent, creator=[agent]
+            catalog_metadata, contact_point=vcard, publisher=agent, creators=[agent]
         )
         assert result.title[0].value == "Sample Catalog"
         assert result.description[0].value == "A test catalog"
@@ -204,12 +204,10 @@ def test_instantiate_dataset(schema):
     ]
 
     result = schema.instantiate_dataset(
-        {
-            **dataset_metadata,
-            "contactPoint": vcard,
-            "publisher": agent,
-            "creator": creators,
-        }
+        dataset_metadata,
+        contact_point=vcard,
+        publisher=agent,
+        creators=creators,
     )
     assert result.title[0].value == "Test Dataset"
     assert result.description[0].value == "A dataset for testing"
