@@ -120,7 +120,7 @@ See `CONTRIBUTING.md` for details on how to contribute new modules, tests, and d
 
 ## License
 
-This project is licensed under the GNU GPL v3 or later.
+This project is licensed under Apache-2.0 .
 
 <!--
 
