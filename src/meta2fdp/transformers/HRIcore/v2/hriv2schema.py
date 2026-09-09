@@ -2,6 +2,7 @@
 
 import logging
 from types import NoneType
+from datetime import datetime,timezone
 
 import pandas as pd
 from rdflib import Graph, URIRef
@@ -565,6 +566,7 @@ class Hriv2Schema(AbstractSchema):
             "number_of_unique_individuals": metadata.get(
                 "numberOfUniqueIndividuals", None
             ),
+             "release_date": metadata.get("release_date", datetime.now(timezone.utc)),
             # add more properties as needed
         }
 
