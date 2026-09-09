@@ -29,46 +29,77 @@ meta2fdp
 Use the Python API to assemble a pipeline:
 
 ```python
+from pathlib import Path
+
+import yaml
+
+from meta2fdp.bootstrap import register_modules, register_transformer_configs
 from meta2fdp.config.connector.csvconnector import CSVConnectorConfig
 from meta2fdp.config.extractor.extractor import ExtractorConfig
-from meta2fdp.config.transformer.transformer import TransformerConfig
 from meta2fdp.config.fdp.fdpconfig import FDPConfig
-from meta2fdp.pipeline.publish_metadata import PublishMetadataPipeline
-from meta2fdp.bootstrap import register_modules
+from meta2fdp.pipeline.publish_catalogs_datasets_metadata import (
+    PublishCatalogsDatasetsMetadataPipeline,
+)
 
+
+# Register the available meta2fdp modules
 registries = register_modules()
-transformer_configs = register_transformer_configs()
 
+
+# Configure the CSV input
 connector_config = CSVConnectorConfig(
     name="csv_connector",
     connector_name="CSVConnector",
     connector_type="csv",
     separator=";",
     header=0,
-    catalog_input_file=Path("tests/data/input/Health-RI_LUMC_catalogue.csv"),
-    dataset_input_file=Path("tests/data/input/Health-RI_LUMC_datasets.csv"),
+    catalog_input_file=Path(
+        "tests/data/input/Health-RI_LUMC_catalogue.csv"
+    ),
+    dataset_input_file=Path(
+        "tests/data/input/Health-RI_LUMC_datasets.csv"
+    ),
 )
 
+
+# Load the field mappings from YAML
+# (mapping_file is not read anywhere internally, so we load it ourselves
+# and pass the parsed dict in as `mappings`)
+with open("tests/config/mappings_test.yaml") as f:
+    mappings = yaml.safe_load(f)["mappings"]
+
+
+# Configure metadata extraction
 extractor_config = ExtractorConfig(
     name="df_extractor",
     config_type="extractor",
     extractor_name="DFExtractor",
     extractor_type="df",
-    mapping_file=Path("tests/config/mappings_test.yaml"),
+    mappings=mappings,
 )
-extractor_config.get_mappings()  # Load mappings from the specified mapping file
 
+
+# Get the Health-RI v2 schema
+transformer_configs = register_transformer_configs()
 schema_config = transformer_configs["HRIcore_v2_LUMC"]
 
+
+# Load LUMC default metadata
+schema_config.get_default_values(
+    "config/defaults/default_values_lumc.yaml"
+)
+
+# Configure the local FAIR Data Point
 fdp_config = FDPConfig(
     name="FDPClient",
     fdp_version="v2",
     URL="http://localhost",
     environmentprovider=registries["secrets"]["env"](),
     keyringprovider=registries["secrets"]["keyring"](),
-
 )
 
+
+# Create the pipeline
 pipeline = PublishCatalogsDatasetsMetadataPipeline(
     connector_config=connector_config,
     extractor_config=extractor_config,
@@ -77,6 +108,8 @@ pipeline = PublishCatalogsDatasetsMetadataPipeline(
     registries=registries,
 )
 
+
+# Run the pipeline
 pipeline.run()
 ```
 
