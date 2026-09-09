@@ -6,9 +6,10 @@ catalog:
 
 dataset:
   theme: http://publications.europa.eu/resource/authority/data-theme/HEAL
-  accesrights: http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC
+  access_rights: http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC
   applicable_legislation: https://eur-lex.europa.eu/eli/reg/2025/327/oj
 
+#TODO : access_rights instead of accesrights
 contactPoint:
   hasEmail: mailto:rds@example.org
   formatted_name: contact_name
