@@ -184,6 +184,7 @@ def test_instantiate_dataset(schema):
         "applicable_legislation": "http://example.org/legislation",
         "numberOfRecords": "1000",
         "numberOfUniqueIndividuals": "500",
+        "release_date": "2026-01-01T00:00:00+00:00",
     }
     vcard = hri_dcat.HRIVCard(
         hasEmail="mailto:contact@test.io", formatted_name=LiteralField(value="Contact")
@@ -221,6 +222,7 @@ def test_instantiate_dataset(schema):
     ]
     assert result.number_of_records == 1000
     assert result.number_of_unique_individuals == 500
+    assert result.release_date is not None
 
 
 class TestConfiguration:
