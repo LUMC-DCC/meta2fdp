@@ -27,7 +27,7 @@ dependencies = [
     "pyyaml>=6.0.3",
     "rdflib>=7.6.0",
     "requests>=2.32.5",
-    "sempyro>=2.1.0",
+    "sempyro==2.0.0",
     "pymssql==2.3.7"
 ]
 
