@@ -297,7 +297,7 @@ class FDPClient(AbstractClient):
         :return: updated FDP resource rdf graph
         :rtype: RDFLib Graph
         """
-        content = self.get_metadata(url)
+        content = self.get_resource(url)
         FDP_graph = Graph().parse(data=content)
         # set_changes(new_graph, FDP_graph)
 
@@ -358,7 +358,7 @@ class FDPClient(AbstractClient):
         datasets = {}
         for purl in result:
             purl_string = str(purl[0])
-            metadata = self.get_metadata(purl_string)
+            metadata = self.get_resource(purl_string)
             if metadata == "You are not allow to view this record in state DRAFT":
                 continue  # skip draft datasets
             dataset_metadata = Graph().parse(data=metadata)
