@@ -86,7 +86,7 @@ name = "cffi"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pycparser", marker = "implementation_name != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "pycparser", marker = "implementation_name != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/eb/56/b1ba7935a17738ae8453301356628e8147c79dbb825bcbc73dc7401f9846/cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529", size = 523588, upload-time = "2025-09-08T23:24:04.541Z" }
 wheels = [
@@ -198,7 +198,7 @@ name = "cryptography"
 version = "46.0.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "cffi", marker = "platform_python_implementation != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/60/04/ee2a9e8542e4fa2773b81771ff8349ff19cdd56b7258a0cc442639052edb/cryptography-46.0.5.tar.gz", hash = "sha256:abace499247268e3757271b2f1e244b36b06f8515cf27c4d49468fc9eb16e93d", size = 750064, upload-time = "2026-02-10T19:18:38.255Z" }
 wheels = [
@@ -266,15 +266,15 @@ wheels = [
 
 [[package]]
 name = "email-validator"
-version = "2.3.0"
+version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dnspython" },
     { name = "idna" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f5/22/900cb125c76b7aaa450ce02fd727f452243f2e91a61af068b40adba60ea9/email_validator-2.3.0.tar.gz", hash = "sha256:9fc05c37f2f6cf439ff414f8fc46d917929974a82244c20eb10231ba60c54426", size = 51238, upload-time = "2025-08-26T13:09:06.831Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/48/ce/13508a1ec3f8bb981ae4ca79ea40384becc868bfae97fd1c942bb3a001b1/email_validator-2.2.0.tar.gz", hash = "sha256:cb690f344c617a714f22e66ae771445a1ceb46821152df8e165c5f9a364582b7", size = 48967, upload-time = "2024-06-20T11:30:30.034Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl", hash = "sha256:80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4", size = 35604, upload-time = "2025-08-26T13:09:05.858Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/ee/bf0adb559ad3c786f12bcbc9296b3f5675f529199bef03e2df281fa1fadb/email_validator-2.2.0-py3-none-any.whl", hash = "sha256:561977c2d73ce3611850a06fa56b414621e0c8faa9d66f2611407d87465da631", size = 33521, upload-time = "2024-06-20T11:30:28.248Z" },
 ]
 
 [[package]]
@@ -491,7 +491,7 @@ wheels = [
 
 [[package]]
 name = "meta2fdp"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "keyring" },
@@ -526,7 +526,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "rdflib", specifier = ">=7.6.0" },
     { name = "requests", specifier = ">=2.32.5" },
-    { name = "sempyro", specifier = ">=2.1.0" },
+    { name = "sempyro", specifier = "==2.0.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1064,8 +1064,8 @@ name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "jeepney", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "cryptography" },
+    { name = "jeepney" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
@@ -1074,7 +1074,7 @@ wheels = [
 
 [[package]]
 name = "sempyro"
-version = "2.1.0"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "email-validator" },
@@ -1083,9 +1083,9 @@ dependencies = [
     { name = "rdflib" },
     { name = "ruamel-yaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/5f/17d21aa0e1dc8b618c93501356b2f8585fe342c89fe5af8f4d9c122300bb/sempyro-2.1.0.tar.gz", hash = "sha256:e7ca8c0158139a3bc6cd9635ff0e2bc8e1cf74e6968bc74df8189ae20d72722b", size = 15428042, upload-time = "2025-10-02T12:48:47.348Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/5b/78f684da080fc22179301e88ee126d245b1e2ddd1ee24566698e2e91da63/sempyro-2.0.0.tar.gz", hash = "sha256:4cb1591459bafc1638ba270a81217089820d80556241ce3f54eb550298e5d884", size = 15425875, upload-time = "2025-06-03T09:33:22.024Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/ae/a670ded440ee2acdb7d96f1df1ceff54cbca6e30eb55e74b4e252ccca9aa/sempyro-2.1.0-py3-none-any.whl", hash = "sha256:1082d7d834725199b1eb6ddfe24fe427beb0758a2102343c46c68b7ea8367db4", size = 86580, upload-time = "2025-10-02T12:48:45.479Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/01/01f065b8616776253f8e1e8bbad6edfa89078c6b00f36e6e60ff97713d89/sempyro-2.0.0-py3-none-any.whl", hash = "sha256:d1aa1345639fe914cd5ad2c24ae899da9882eaaebb100ed3b063027e8841ff07", size = 86516, upload-time = "2025-06-03T09:33:20.197Z" },
 ]
 
 [[package]]
