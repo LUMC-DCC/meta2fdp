@@ -32,5 +32,5 @@ def config():
             "username": "FDP_USERNAME",
         },
         "mode": {"publish": True},
-        "stayalive": False,  # set to True to keep the FDP server running after the tests are done, for debugging purposes
+        "stayalive": True,  # set to True to keep the FDP server running after the tests are done, for debugging purposes
     }
